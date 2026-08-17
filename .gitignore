@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# Development recordings / identifiable media
+recordings/
+*.webm
+*.mp4
+
+# Generated reference pose artefacts may be versioned selectively later
+test-data/private/
