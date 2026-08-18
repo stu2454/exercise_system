@@ -116,6 +116,51 @@ export interface SessionSummary {
 }
 ```
 
+## Exercise library and programme
+
+Each reference clip represents one reusable exercise. Dose remains separate
+from programme prescription so the same exercise can be assigned differently
+in different programmes.
+
+```ts
+type ExerciseDoseType =
+  | "repetitions"
+  | "repetitions-each-side"
+  | "duration"
+  | "hold"
+  | "free";
+
+interface Exercise {
+  id: string;
+  name: string;
+  shortInstruction: string;
+  description?: string;
+  doseType: ExerciseDoseType;
+  referenceVideo?: string;
+  defaultDose?: ExerciseDose;
+  defaultSets?: number;
+  defaultRestBetweenSetsSeconds?: number;
+}
+
+interface ExercisePrescription {
+  exerciseId: string;
+  dose: ExerciseDose;
+  sets?: number;
+  restBetweenSetsSeconds?: number;
+  restAfterSeconds?: number;
+}
+
+interface ExerciseProgramme {
+  id: string;
+  name: string;
+  description?: string;
+  exercises: ExercisePrescription[];
+}
+```
+
+Programme array order is the explicit exercise order. Participant instructions
+are generated deterministically from the dose type and prescription.
+
 ## Recording format
 
 JSONL is preferred for frame streams:

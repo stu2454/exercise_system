@@ -25,3 +25,10 @@ export interface PoseQuality {
   missingRequiredLandmarks: LandmarkName[];
   warnings: string[];
 }
+
+export interface ProcessedPoseFrame {
+  timestampMs: number;
+  rawPoseFrame: PoseFrame | null;
+  filteredPoseFrame: PoseFrame | null;
+  poseQuality: PoseQuality;
+}

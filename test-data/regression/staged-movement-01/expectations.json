@@ -1,0 +1,62 @@
+{
+  "id": "staged-movement-01",
+  "description": "Still, left arm, side-to-side stepping, whole-body movement, leave frame, and return",
+  "recordingFile": "recording.jsonl",
+  "warmupMs": 1000,
+  "segments": [
+    {
+      "name": "still",
+      "startMs": 5000,
+      "endMs": 10000,
+      "expect": {
+        "activityLevelMostly": "still"
+      }
+    },
+    {
+      "name": "left-arm",
+      "startMs": 10000,
+      "endMs": 20000,
+      "expect": {
+        "leftUpperLimbGreaterThanRightUpperLimb": true,
+        "upperBodyGreaterThanLowerBody": true
+      }
+    },
+    {
+      "name": "stepping",
+      "startMs": 20000,
+      "endMs": 30000,
+      "expect": {
+        "lowerBodyGreaterThanStillSegment": true
+      }
+    },
+    {
+      "name": "whole-body",
+      "startMs": 30000,
+      "endMs": 45000,
+      "expect": {
+        "wholeBodyGreaterThanStillSegment": true,
+        "upperBodyActive": true,
+        "lowerBodyActive": true
+      }
+    },
+    {
+      "name": "out-of-frame",
+      "startMs": 47000,
+      "endMs": 50000,
+      "expect": {
+        "poseQualityMostly": "insufficient",
+        "insufficientQualityProportionAtLeast": 0.95,
+        "movementFeaturesInvalid": true
+      }
+    },
+    {
+      "name": "returned-still",
+      "startMs": 53000,
+      "endMs": 56000,
+      "expect": {
+        "activityLevelMostly": "still",
+        "validObservationFractionAtLeast": 0.95
+      }
+    }
+  ]
+}

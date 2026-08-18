@@ -81,7 +81,17 @@ End-of-session summary:
 - same pose stream yields deterministic feature results;
 - regression fixtures support expected properties.
 
-## Build 6–8
+## Build 6 acceptance criteria
+
+- each reference video represents one individual exercise;
+- reusable exercises are separate from programme prescriptions;
+- repetition, each-side, duration, hold and free doses are representable;
+- programmes preserve exercise order and optional rest periods;
+- participant-facing instructions are deterministic;
+- development views expose the exercise library, programme and native video playback;
+- no reference pose extraction or participant comparison is performed yet.
+
+## Builds 7–8
 
 Reference matching begins only after participant-only metrics are stable.
 

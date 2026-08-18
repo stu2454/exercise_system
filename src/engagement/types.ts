@@ -3,6 +3,7 @@ export interface SessionSummary {
   validObservationFraction: number;
   visibleFraction: number;
   activeFraction: number;
+  wholeBodyActivityMean: number | null;
   upperBodyActivityMean: number | null;
   lowerBodyActivityMean: number | null;
   trunkActivityMean: number | null;

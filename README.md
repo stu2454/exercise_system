@@ -41,7 +41,7 @@ It intentionally does **not** inherit:
 - MediaPipe Pose Landmarker
 - browser `getUserMedia`
 - local processing by default
-- IndexedDB/local JSON for prototype persistence
+- in-memory state and downloadable JSONL for prototype persistence
 - Vitest for unit tests
 
 ## First builds
@@ -52,12 +52,32 @@ It intentionally does **not** inherit:
 4. **Build 3 — Pose quality and temporal filtering**
 5. **Build 4 — Participant-only activity metrics**
 6. **Build 5 — Record/replay and regression harness**
-7. **Build 6 — Reference-video pose extraction**
-8. **Build 7 — Participant/reference synchronisation**
+7. **Build 6 — Exercise library and programme foundations**
+8. **Build 7 — Reference pose extraction and synchronisation foundations**
 9. **Build 8 — Similarity and responsiveness**
 10. **Build 9 — Session dashboard and export**
 
 Do not jump ahead to a composite engagement score before the component measures have been inspected independently.
+
+## Current implementation
+
+Builds 0–6 are complete through the exercise-library, programme-runner and
+participant-mode foundations. The application currently provides:
+
+- explicit webcam lifecycle and single-person MediaPipe pose estimation;
+- canonical named pose landmarks, quality assessment and temporal filtering;
+- validity-aware whole-body and regional movement activity;
+- schema 2.0.0 canonical JSONL recording with explicit no-pose observations;
+- deterministic replay and a property-based regression fixture;
+- a nine-exercise duration programme with configurable sets and rest;
+- full-screen split reference/participant presentation, canonical skeleton,
+  framing guidance and an intentional right-arm ready gesture;
+- graceful completed/aborted session export;
+- semantic participant prompts with optional natural audio and browser voice
+  fallback.
+
+Reference pose extraction, participant/reference synchronisation, movement
+similarity and responsiveness have not begun.
 
 ## Getting started
 
@@ -75,6 +95,10 @@ Before coding, read:
 3. `docs/02-engagement-model.md`
 4. `docs/03-technical-architecture.md`
 5. `docs/05-mvp-specification.md`
+
+The full 18 August 2026 implementation history and observed validation results
+are recorded in
+[`docs/development-log/2026-08-18-development-session.md`](docs/development-log/2026-08-18-development-session.md).
 
 ## Privacy default
 

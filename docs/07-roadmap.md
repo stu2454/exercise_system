@@ -31,10 +31,14 @@ Create a small labelled dataset.
 ## Phase C — Reference exercise
 
 ### Build 6
-Precompute pose/features from a reference exercise video.
+Exercise library and programme foundations around individual reference clips.
+
+Define reusable exercises, dose, programme prescriptions and deterministic
+participant-facing instructions. Each reference video represents one individual
+exercise; a multi-exercise matrix is not treated as a continuous session video.
 
 ### Build 7
-Synchronise participant and reference streams.
+Extract reference pose streams and establish participant/reference time bases.
 
 ### Build 8
 Explore responsiveness and movement similarity.

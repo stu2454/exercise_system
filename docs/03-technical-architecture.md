@@ -84,6 +84,17 @@ Responsibilities:
 - segment reference movement later;
 - synchronise reference and participant timelines.
 
+### `src/exercise`
+
+Responsibilities:
+
+- vendor-neutral exercise and dose definitions;
+- programme prescriptions and ordering;
+- deterministic participant instructions;
+- mapping individual exercise clips to browser paths.
+
+Must not depend on React, MediaPipe or participant pose processing.
+
 ### `src/engagement`
 
 Responsibilities:
@@ -160,7 +171,11 @@ Do not add a cloud database before there is a concrete multi-user need.
 
 ## Reference-video strategy
 
-Reference videos should eventually have a precomputed pose artefact:
+Each reference video represents one individual exercise. A programme is an
+ordered list of prescriptions that refer to those reusable exercises; it is not
+one continuous multi-exercise reference video.
+
+Individual reference videos may eventually have a precomputed pose artefact:
 
 ```text
 exercise.mp4

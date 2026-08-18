@@ -38,6 +38,24 @@ Pose streams from real sessions.
 
 The raw video need not be retained once a useful canonical fixture exists, provided debugging needs are met.
 
+Build 5 regression fixtures pair a schema 2.0.0 canonical JSONL recording with
+an `expectations.json` manifest. Canonical `pose-observation` records are the
+only replay input. Recorded pose-quality and movement-feature records remain
+diagnostic comparison data and must never drive recalculated output.
+
+Replay processes every observation. Deterministic pass/fail comparison excludes
+the first 1,000 ms by default because a live recording can begin after the live
+filter and movement pipeline has accumulated history, while replay begins from
+a reset state. This warm-up is an explicit initial-condition boundary, not a
+way to hide processing errors. Set `warmupMs` to zero for fixtures captured from
+a known empty temporal state.
+
+Prefer behavioural properties over exact values: active movement should exceed
+the still baseline, regional activity should reflect staged movement, tracking
+loss should produce insufficient quality and invalid features, and valid
+observations should recover when the participant returns. Exact numeric
+assertions belong in focused mathematical unit tests.
+
 ## Ground truth
 
 Avoid defining ground truth solely from the algorithm output.
