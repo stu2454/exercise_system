@@ -7,7 +7,7 @@ describe("Client Demo landing", () => {
     const html = renderToStaticMarkup(<ClientDemoLanding exerciseCount={9} onStart={() => undefined} />);
     expect(html).toContain("9 exercises");
     expect(html).toContain("GET STARTED");
-    expect(html).toContain("not a medical assessment or treatment tool");
+    expect(html).toContain("not a medical assessment or treatment");
     expect(html).not.toContain("ENABLE CAMERA");
     for (const excluded of ["Launch Participant Mode", "Exercise Library", "Programme Configuration", "diagnostics", "+1 Rep", "Build 7"]) {
       expect(html).not.toContain(excluded);

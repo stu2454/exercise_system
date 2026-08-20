@@ -9,9 +9,9 @@ export function ClientDemoLanding({ exerciseCount, onStart }: ClientDemoLandingP
       <p className="eyebrow">Prototype demonstration</p>
       <h1>Exercise Programme Demo</h1>
       <p className="client-demo-landing__count">{exerciseCount} exercises</p>
-      <p>This prototype uses your device&apos;s camera to track your movement while you follow a series of exercise demonstrations.</p>
-      <p className="client-demo-privacy">Camera images and movement processing remain on your device during this demonstration.</p>
-      <p className="client-demo-disclaimer">This is a demonstration system and is not a medical assessment or treatment tool.</p>
+      <p className="client-demo-lead">Follow nine exercise videos while the camera tracks your movement.</p>
+      <p className="client-demo-privacy">Camera images and movement processing stay on this device.</p>
+      <p className="client-demo-disclaimer">Demonstration only — not a medical assessment or treatment.</p>
       <button className="participant-primary-action" type="button" onClick={onStart}>GET STARTED</button>
     </main>
   );

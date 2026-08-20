@@ -63,4 +63,11 @@ describe("Client Demo onboarding UI", () => {
     expect(render("tutorial-step")).not.toContain("START PROGRAMME");
     expect(render("ready")).toContain("START PROGRAMME");
   });
+
+  it("uses concise distance-readable instruction copy", () => {
+    expect(render("positioning")).toContain("Step back until your whole body is visible.");
+    expect(render("ready")).toContain("Nine exercises. Follow each video");
+    expect(render("prepare-space")).toContain("Stable device");
+    expect(render("prepare-space")).toContain("Clear the area");
+  });
 });

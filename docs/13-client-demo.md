@@ -138,3 +138,12 @@ Framing and tutorial recognition remain deliberately simple. Lighting, camera
 field of view, loose clothing, furniture and occlusion can affect landmarks;
 mirrored presentation is why the tutorial says “sideways” rather than naming a
 side. The checks do not assess exercise quality or safety.
+
+## Distance-readable presentation
+
+Onboarding is designed for a participant standing approximately 1–2 metres from
+the device. Each screen uses one short primary instruction, large responsive
+headings, high-contrast camera feedback and a prominent right-arm continuation
+prompt. Space preparation is reduced to four scannable actions with bold lead
+words. Privacy and prototype qualifications remain visible but do not compete
+with the current movement instruction.

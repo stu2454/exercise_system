@@ -32,11 +32,12 @@ body {
 }
 
 .client-demo-landing h1 { max-width: none; margin: 0; }
-.client-demo-landing > p { max-width: 42rem; margin: 0; font-size: clamp(1.1rem, 2vw, 1.4rem); line-height: 1.5; }
+.client-demo-landing > p { max-width: 48rem; margin: 0; font-size: clamp(1.35rem, 2.4vw, 2rem); line-height: 1.35; }
+.client-demo-landing .client-demo-lead { font-size: clamp(1.8rem, 3.5vw, 3rem); font-weight: 800; }
 .client-demo-landing .eyebrow { color: #a8d8b7; }
-.client-demo-landing__count { color: #7ef2ad; font-weight: 900; text-transform: uppercase; }
-.client-demo-privacy { color: #a9bbb1; font-size: 0.95rem !important; }
-.client-demo-disclaimer { color: #d8c584; font-size: 0.95rem !important; }
+.client-demo-landing__count { color: #7ef2ad; font-size: clamp(1.8rem, 3vw, 2.6rem) !important; font-weight: 900; text-transform: uppercase; }
+.client-demo-privacy { color: #d5e2da; font-size: clamp(1.15rem, 1.8vw, 1.5rem) !important; }
+.client-demo-disclaimer { color: #ffe49a; font-size: clamp(1.15rem, 1.8vw, 1.5rem) !important; font-weight: 700; }
 .client-demo-landing .participant-primary-action { margin-top: 1rem; }
 
 .client-demo-onboarding {
@@ -68,7 +69,7 @@ body {
 .client-demo-setup-progress li {
   padding: 0.6rem 0.35rem;
   border-bottom: 3px solid #314b3d;
-  font-size: clamp(0.7rem, 1.5vw, 1rem);
+  font-size: clamp(0.95rem, 1.6vw, 1.25rem);
   font-weight: 800;
 }
 
@@ -92,23 +93,29 @@ body {
 .client-demo-camera-layout h1 {
   max-width: none;
   margin: 0;
-  font-size: clamp(2.4rem, 5vw, 4.5rem);
+  font-size: clamp(3rem, 6vw, 5.5rem);
 }
 
 .client-demo-card > p,
 .client-demo-camera-layout > div:first-child > p {
   margin: 0;
-  font-size: clamp(1.05rem, 2vw, 1.35rem);
-  line-height: 1.55;
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  line-height: 1.4;
+}
+
+.client-demo-camera-layout .client-demo-lead {
+  font-size: clamp(1.8rem, 3.4vw, 2.8rem);
+  font-weight: 850;
+  line-height: 1.25;
 }
 
 .client-demo-card ul {
   display: grid;
-  gap: 0.65rem;
+  gap: 1rem;
   margin: 0;
   padding-left: 1.4rem;
-  font-size: clamp(1rem, 1.7vw, 1.2rem);
-  line-height: 1.45;
+  font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+  line-height: 1.35;
 }
 
 .client-demo-safety {
@@ -116,6 +123,8 @@ body {
   color: #231805;
   background: #ffd76a;
   border-radius: 0.65rem;
+  font-size: clamp(1.35rem, 2.4vw, 1.8rem) !important;
+  text-align: center;
 }
 
 .client-demo-camera-layout .client-demo-gesture-instruction {
@@ -124,7 +133,10 @@ body {
   color: #102017;
   background: #7ef2ad;
   border-radius: 0.65rem;
+  font-size: clamp(1.75rem, 3vw, 2.5rem) !important;
   font-weight: 900;
+  line-height: 1.2 !important;
+  text-align: center;
 }
 
 .client-demo-card .participant-primary-action,
@@ -153,7 +165,7 @@ body {
   color: #102017;
   background: #a8d8b7;
   border-radius: 0.65rem;
-  font-size: clamp(1rem, 2vw, 1.35rem);
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
   font-weight: 900;
   text-align: center;
 }
