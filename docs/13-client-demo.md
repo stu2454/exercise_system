@@ -3,12 +3,46 @@
 ## Purpose
 
 The Client Demo is a clean participant-facing surface for external sharing. A
-visitor opens the static site, sees the exercise-programme landing screen and
-selects **START PROGRAMME**. The demo runs Exercise 01 through Exercise 09 once,
-then shows programme completion.
+visitor opens the static site, completes a short guided setup, and then selects
+**START PROGRAMME**. The demo runs Exercise 01 through Exercise 09 once, then
+shows programme completion.
 
 It is a prototype interaction and technology demonstration. It is not presented
 as clinically validated or as a medical device.
+
+## Client Demo user flow
+
+```text
+Welcome → Prepare space → Enable camera → Position body
+→ Three-movement tutorial → Ready
+→ Nine-exercise programme → Complete
+```
+
+Camera permission is not requested on page load. It is requested only after the
+participant reaches Camera Setup and selects **ENABLE CAMERA**. The resulting
+stream is retained throughout positioning and the tutorial and reused by the
+programme. The pose engine uses one onboarding loop and is cleanly rebound to
+the programme's camera canvas without creating a second MediaStream.
+
+The positioning step uses the existing debounced framing guidance to check for
+a detected body, approximate centre position, useful body size and full-body
+visibility. The checks are forgiving and are a usability aid only. They are not
+clinical calibration or an assessment, and **CONTINUE ANYWAY** prevents an
+unreliable landmark from blocking the participant.
+
+The tutorial contains exactly three movements:
+
+1. **Stand in the centre** — a usable pose with shoulders and hips remains
+   visible for approximately 750 ms; brief tracking loss is tolerated.
+2. **Raise your arms** — both wrists move above their respective shoulders and
+   then return below shoulder level.
+3. **Step to the side** — shoulder/hip body centre shifts horizontally and then
+   returns towards its starting position.
+
+Each movement also has a manual continuation action. Tutorial observations are
+not exercises and do not create or enter a `ProgrammeSessionResult`. The actual
+session tracker is created only from the final Ready screen's **START
+PROGRAMME** action.
 
 ## One engine, multiple application surfaces
 
@@ -93,3 +127,8 @@ inspection and `git diff --check`.
 Camera permission, pose inference, autoplay policy and full programme timing
 must still be manually smoke-tested in current Chrome, Safari and Edge when a
 deployed HTTPS URL is available.
+
+Framing and tutorial recognition remain deliberately simple. Lighting, camera
+field of view, loose clothing, furniture and occlusion can affect landmarks;
+mirrored presentation is why the tutorial says “sideways” rather than naming a
+side. The checks do not assess exercise quality or safety.

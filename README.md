@@ -114,6 +114,11 @@ camera, pose overlay, reference-video behaviour and session-result lifecycle as
 the developer application, but runs one pass through the nine current exercises
 and does not include developer navigation or tools.
 
+Before the programme, it guides a participant through orientation, space and
+camera setup, forgiving positioning feedback, and three tutorial movements:
+stand centred, raise both arms, and step sideways and return. This onboarding is
+not an assessment and is excluded from programme results.
+
 This is a prototype technology demonstration, not a validated clinical system.
 Camera and pose processing remain in the browser; raw camera video is not
 recorded or uploaded.

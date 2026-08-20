@@ -8,12 +8,12 @@
 **Current stage:** Stage 7 — Session Detail View (not started)
 **Last completed stage:** Build 7 Stage 6 — Session History List
 
-**Additional deployment capability:** Client Demo / GitHub Pages — complete
+**Additional deployment capability:** Client Demo deployed on GitHub Pages; guided onboarding implemented locally
 
 **Verification:**
 
-- 35 test files passing
-- 228 tests passing
+- 37 test files passing
+- 242 tests passing
 - Production build passing
 - Client Demo production build passing
 - `git diff --check` passing
@@ -36,7 +36,7 @@ Progress is determined by verified stage acceptance, not test count.
 | Build 7 Stage 8 | Descriptive Adherence Measures | ⬜ Not started |
 | Build 7 Stage 9 | Session Management | ⬜ Not started |
 | Build 7 Stage 10 | Regression, Migration, Documentation and Cleanup | ⬜ Not started |
-| Client Demo | Participant-only static GitHub Pages target; one pass through nine exercises | ✅ Complete |
+| Client Demo | Participant-only static GitHub Pages target; guided setup plus one pass through nine exercises | ✅ Complete |
 
 Status vocabulary: ✅ Complete · 🟡 In progress · ⛔ Blocked · ⬜ Not started · 🔁 Reopened
 

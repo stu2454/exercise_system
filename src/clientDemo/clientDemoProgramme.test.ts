@@ -8,6 +8,7 @@ import {
   tickProgramme,
 } from "../programme/programmeRunner";
 import { createClientDemoProgramme } from "./clientDemoProgramme";
+import { ProgrammeSessionTracker } from "../session/programmeSession";
 
 describe("Client Demo programme", () => {
   const demo = createClientDemoProgramme(DEVELOPMENT_PROGRAMME);
@@ -53,5 +54,12 @@ describe("Client Demo programme", () => {
   it("does not change the source programme's multi-round capability", () => {
     expect(programmeExerciseOrder(DEVELOPMENT_PROGRAMME)).toHaveLength(27);
     expect(DEVELOPMENT_PROGRAMME.exercises.every(({ sets }) => sets === 3)).toBe(true);
+  });
+
+  it("keeps onboarding movements outside the programme result schema", () => {
+    const result = new ProgrammeSessionTracker(demo, 1000, "demo-session").finish("aborted", "participant_exit", 2000);
+    expect(result.exercises).toHaveLength(9);
+    expect(result.exercises.map(({ exerciseId }) => exerciseId)).toEqual(programmeExerciseOrder(demo));
+    expect(result.exercises.some(({ exerciseId }) => exerciseId.includes("tutorial"))).toBe(false);
   });
 });
