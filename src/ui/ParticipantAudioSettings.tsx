@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { selectBrowserVoice, type BrowserVoiceOption, type ParticipantPromptSettings } from "../audio/participantPrompts";
+import { mergeBrowserVoiceOptions, selectBrowserVoice, type BrowserVoiceOption, type ParticipantPromptSettings } from "../audio/participantPrompts";
 
 interface Props { settings: ParticipantPromptSettings; onChange: (settings: ParticipantPromptSettings) => void; }
 function readVoices(): BrowserVoiceOption[] { return typeof window !== "undefined" && "speechSynthesis" in window ? window.speechSynthesis.getVoices().map(({ name, lang, voiceURI, default: isDefault }) => ({ name, lang, voiceURI, default: isDefault })) : []; }
 
 export function ParticipantAudioSettings({ settings, onChange }: Props) {
   const [voices, setVoices] = useState<BrowserVoiceOption[]>(readVoices);
-  useEffect(() => { if (!("speechSynthesis" in window)) return; const refresh = () => setVoices(readVoices()); refresh(); window.speechSynthesis.addEventListener?.("voiceschanged", refresh); return () => window.speechSynthesis.removeEventListener?.("voiceschanged", refresh); }, []);
+  useEffect(() => { if (!("speechSynthesis" in window)) return; const refresh = () => setVoices((known) => mergeBrowserVoiceOptions(known, readVoices())); refresh(); window.speechSynthesis.addEventListener?.("voiceschanged", refresh); return () => window.speechSynthesis.removeEventListener?.("voiceschanged", refresh); }, []);
   const selected = useMemo(() => selectBrowserVoice(voices, settings.voiceURI), [settings.voiceURI, voices]);
   const update = (change: Partial<ParticipantPromptSettings>) => onChange({ ...settings, ...change });
   return <section className="development-section participant-audio-settings"><p className="eyebrow">Participant audio</p><h2>Voice prompt settings</h2><div className="audio-settings-grid">

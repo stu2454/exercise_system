@@ -34,6 +34,16 @@ export function rankBrowserVoices(voices: readonly BrowserVoiceOption[]): Browse
   return voices.map((voice, index) => ({ voice, index })).sort((a, b) => languageRank(a.voice.lang) - languageRank(b.voice.lang) || Number(b.voice.default) - Number(a.voice.default) || a.index - b.index).map(({ voice }) => voice);
 }
 
+/** Browser voice discovery is asynchronous and may temporarily return a partial list. */
+export function mergeBrowserVoiceOptions(
+  known: readonly BrowserVoiceOption[],
+  discovered: readonly BrowserVoiceOption[],
+): BrowserVoiceOption[] {
+  const merged = new Map(known.map((voice) => [voice.voiceURI, voice]));
+  for (const voice of discovered) merged.set(voice.voiceURI, voice);
+  return [...merged.values()];
+}
+
 export function selectBrowserVoice(voices: readonly BrowserVoiceOption[], selectedVoiceURI: string | null): BrowserVoiceOption | null {
   if (selectedVoiceURI) {
     const manual = voices.find((voice) => voice.voiceURI === selectedVoiceURI);
@@ -71,7 +81,8 @@ export function createHtmlAudioAdapter(): NaturalAudioAdapter | null {
   return {
     cancel: () => { if (current) { current.pause(); current.currentTime = 0; current = null; } },
     play: (assetPath, volume) => new Promise((resolve) => {
-      const audio = new Audio(assetPath); current = audio; audio.volume = Math.max(0, Math.min(1, volume));
+      const baseUrl = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+      const audio = new Audio(`${baseUrl}${assetPath.replace(/^\/+/, "")}`); current = audio; audio.volume = Math.max(0, Math.min(1, volume));
       const failed = () => { if (current === audio) current = null; resolve(false); };
       audio.addEventListener("error", failed, { once: true });
       void audio.play().then(() => resolve(true)).catch(failed);
@@ -81,12 +92,18 @@ export function createHtmlAudioAdapter(): NaturalAudioAdapter | null {
 
 export function createBrowserSpeechAdapter(): BrowserSpeechAdapter | null {
   if (typeof window === "undefined" || !("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return null;
+  const knownVoices = new Map<string, SpeechSynthesisVoice>();
+  const refreshVoices = () => {
+    for (const voice of window.speechSynthesis.getVoices()) knownVoices.set(voice.voiceURI, voice);
+  };
+  refreshVoices();
   return {
     cancel: () => window.speechSynthesis.cancel(),
     speak: (text, settings, selected) => {
+      refreshVoices();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = settings.rate; utterance.pitch = settings.pitch; utterance.volume = settings.volume;
-      if (selected) utterance.voice = window.speechSynthesis.getVoices().find((voice) => voice.voiceURI === selected.voiceURI) ?? null;
+      if (selected) utterance.voice = knownVoices.get(selected.voiceURI) ?? null;
       window.speechSynthesis.speak(utterance);
     },
   };

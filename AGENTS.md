@@ -17,6 +17,8 @@ The immediate goal is not a complete rehabilitation platform. The first goal is 
 
 Before making material changes, read:
 
+- `PROJECT_STATUS.md`
+- the latest relevant entry under `docs/dev-log/`
 - `docs/01-project-vision.md`
 - `docs/02-engagement-model.md`
 - `docs/03-technical-architecture.md`
@@ -26,6 +28,16 @@ Before making material changes, read:
 - `docs/07-roadmap.md`
 
 These are the project source of truth.
+
+## Development progress tracking
+
+- Read `PROJECT_STATUS.md` and the latest relevant development log before substantive work.
+- Implement only the requested stage or the current next stage unless explicitly directed otherwise.
+- Update `PROJECT_STATUS.md` whenever a stage changes state or the authoritative next action changes.
+- Update the current `docs/dev-log/YYYY-MM-DD.md` after meaningful work; record decisions and bug causes, not only changed files.
+- Report verification counts only after running the relevant commands.
+- Mark a stage complete only after its acceptance criteria and required verification pass. Mark the next stage in progress only once work on it has begun.
+- Use the status vocabulary defined in `PROJECT_STATUS.md` and the structure in `docs/dev-log/TEMPLATE.md`.
 
 ## Core architectural rule
 
@@ -96,6 +108,9 @@ Unless explicitly changed in an ADR:
 ## Build sequence
 
 Do not skip builds unless explicitly asked.
+
+This is the foundational measurement roadmap. Use `PROJECT_STATUS.md` for the
+authoritative current product build/stage naming and next action.
 
 - Build 0: shell + webcam
 - Build 1: pose engine

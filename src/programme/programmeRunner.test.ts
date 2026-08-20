@@ -5,6 +5,7 @@ import {
   createProgrammeRunnerState,
   currentRunnerExercise,
   pauseProgramme,
+  processProgrammeRunnerEvent,
   programmeExerciseOrder,
   resumeProgramme,
   restoreProgrammeAfterExit,
@@ -47,6 +48,8 @@ function runOrder(programme: ExerciseProgramme): string[] {
     if (state.phase === "exercising") {
       order.push(programme.exercises[state.currentExerciseIndex].exerciseId);
       state = tickProgramme(state, programme, 60);
+    } else if (state.phase === "ready") {
+      state = startCurrentExercise(state, programme);
     } else {
       state = tickProgramme(state, programme, 20);
     }
@@ -73,19 +76,56 @@ describe("participant programme state machine", () => {
     expect(state).toMatchObject({ phase: "resting", currentExerciseIndex: 0, restTimeRemainingSeconds: 20 });
   });
 
-  it("rest timeout and Continue Now advance to the next exercise", () => {
-    const resting = tickProgramme(exercisingState(DEVELOPMENT_PROGRAMME, 0, 0), DEVELOPMENT_PROGRAMME, 60);
-    expect(tickProgramme(resting, DEVELOPMENT_PROGRAMME, 20)).toMatchObject({ phase: "exercising", currentExerciseIndex: 1 });
-    expect(startCurrentExercise(resting, DEVELOPMENT_PROGRAMME)).toMatchObject({ phase: "exercising", currentExerciseIndex: 1 });
+  it("counts generic repetition events and completes exactly at the target", () => {
+    const programme: ExerciseProgramme = {
+      ...programmeWithSets(2),
+      exercises: programmeWithSets(2).exercises.map((item, index) => index === 0 ? {
+        ...item,
+        doseType: "repetitions" as const,
+        dose: { repetitions: 2 },
+      } : item),
+    };
+    let state = startCurrentExercise(startProgramme(createProgrammeRunnerState(programme), programme), programme);
+    const event = { type: "repetition-completed" as const, exerciseId: "exercise-01", timestampMs: 1000, source: "developer" as const };
+    state = processProgrammeRunnerEvent(state, programme, event);
+    expect(state).toMatchObject({ phase: "exercising", completedRepetitions: 1 });
+    state = processProgrammeRunnerEvent(state, programme, { ...event, timestampMs: 1100 });
+    expect(state).toMatchObject({ phase: "resting", completedRepetitions: 2 });
+    expect(processProgrammeRunnerEvent(state, programme, { ...event, timestampMs: 1200 })).toEqual(state);
   });
 
-  it("Exercise 9 transitions to the next set at Exercise 1", () => {
-    const setComplete = tickProgramme(exercisingState(DEVELOPMENT_PROGRAMME, 0, 8), DEVELOPMENT_PROGRAMME, 60);
-    expect(setComplete.phase).toBe("set-complete");
-    expect(tickProgramme(setComplete, DEVELOPMENT_PROGRAMME, 20)).toMatchObject({
-      phase: "exercising",
-      currentSetIndex: 1,
-      currentExerciseIndex: 0,
+  it("ignores repetition events for the wrong exercise, while paused, or for duration doses", () => {
+    const active = exercisingState(DEVELOPMENT_PROGRAMME, 0, 0);
+    const event = { type: "repetition-completed" as const, exerciseId: "exercise-02", timestampMs: 1000, source: "recognition" as const };
+    expect(processProgrammeRunnerEvent(active, DEVELOPMENT_PROGRAMME, event)).toEqual(active);
+    expect(processProgrammeRunnerEvent({ ...active, paused: true }, DEVELOPMENT_PROGRAMME, { ...event, exerciseId: "exercise-01" })).toEqual({ ...active, paused: true });
+    expect(processProgrammeRunnerEvent(active, DEVELOPMENT_PROGRAMME, { ...event, exerciseId: "exercise-01" })).toEqual(active);
+  });
+
+  it("skips the rest phase when rest is configured as zero", () => {
+    const programme = {
+      ...DEVELOPMENT_PROGRAMME,
+      exercises: DEVELOPMENT_PROGRAMME.exercises.map((item) => ({ ...item, restBetweenSetsSeconds: 0 })),
+    };
+    expect(tickProgramme(exercisingState(programme, 0, 0), programme, 60)).toMatchObject({
+      phase: "ready",
+      currentSetIndex: 0,
+      currentExerciseIndex: 1,
+      restTimeRemainingSeconds: 0,
+    });
+  });
+
+  it("rest timeout and Continue Now advance to the next exercise in the circuit", () => {
+    const resting = tickProgramme(exercisingState(DEVELOPMENT_PROGRAMME, 0, 0), DEVELOPMENT_PROGRAMME, 60);
+    expect(tickProgramme(resting, DEVELOPMENT_PROGRAMME, 20)).toMatchObject({ phase: "exercising", currentExerciseIndex: 1, currentSetIndex: 0 });
+    expect(startCurrentExercise(resting, DEVELOPMENT_PROGRAMME)).toMatchObject({ phase: "exercising", currentExerciseIndex: 1, currentSetIndex: 0 });
+  });
+
+  it("Exercise 9 completes one set and advances to Exercise 1 of the next set", () => {
+    const transition = tickProgramme(exercisingState(DEVELOPMENT_PROGRAMME, 0, 8), DEVELOPMENT_PROGRAMME, 60);
+    expect(transition).toMatchObject({ phase: "set-complete", currentSetIndex: 0, currentExerciseIndex: 8 });
+    expect(startCurrentExercise(transition, DEVELOPMENT_PROGRAMME)).toMatchObject({
+      phase: "exercising", currentSetIndex: 1, currentExerciseIndex: 0,
     });
   });
 
@@ -100,11 +140,39 @@ describe("participant programme state machine", () => {
     expect(runOrder(programme)).toEqual(expected);
   });
 
-  it("uses exercise-major order within each of three sets", () => {
+  it("runs the complete exercise circuit once within each of three sets", () => {
     const programme = programmeWithSets(3);
     const expected = [...EXERCISE_LIBRARY, ...EXERCISE_LIBRARY, ...EXERCISE_LIBRARY].map((exercise) => exercise.id);
     expect(programmeExerciseOrder(programme)).toEqual(expected);
     expect(runOrder(programme)).toEqual(expected);
+  });
+
+  it("regresses a mixed repetition/duration circuit through two complete sets", () => {
+    const programme: ExerciseProgramme = {
+      id: "mixed-circuit",
+      name: "Mixed circuit",
+      exercises: [
+        { ...DEVELOPMENT_PROGRAMME.exercises[0], doseType: "repetitions", dose: { repetitions: 2 }, sets: 2, restBetweenSetsSeconds: 10 },
+        { ...DEVELOPMENT_PROGRAMME.exercises[1], doseType: "duration", dose: { durationSeconds: 20 }, sets: 2, restBetweenSetsSeconds: 5 },
+      ],
+    };
+    let state = startCurrentExercise(startProgramme(createProgrammeRunnerState(programme), programme), programme);
+    const completed: string[] = [];
+    for (let setIndex = 0; setIndex < 2; setIndex += 1) {
+      completed.push(`${state.currentSetIndex}:exercise-01`);
+      state = processProgrammeRunnerEvent(state, programme, { type: "repetition-completed", exerciseId: "exercise-01", timestampMs: setIndex * 1000, source: "developer" });
+      state = processProgrammeRunnerEvent(state, programme, { type: "repetition-completed", exerciseId: "exercise-01", timestampMs: setIndex * 1000 + 1, source: "developer" });
+      expect(state).toMatchObject({ phase: "resting", restTimeRemainingSeconds: 10 });
+      state = tickProgramme(state, programme, 10);
+      completed.push(`${state.currentSetIndex}:exercise-02`);
+      state = tickProgramme(state, programme, 20);
+      if (setIndex === 0) {
+        expect(state).toMatchObject({ phase: "set-complete", restTimeRemainingSeconds: 5 });
+        state = tickProgramme(state, programme, 5);
+      }
+    }
+    expect(completed).toEqual(["0:exercise-01", "0:exercise-02", "1:exercise-01", "1:exercise-02"]);
+    expect(state.phase).toBe("programme-complete");
   });
 
   it("pause and resume preserve programme location and countdown", () => {
@@ -140,6 +208,14 @@ describe("participant programme state machine", () => {
     expect(validateRunnerProgramme({ id: "empty", name: "Empty", exercises: [] }, EXERCISE_LIBRARY)).toMatchObject({
       valid: false,
       errors: expect.arrayContaining(["Programme contains no exercises."]),
+    });
+  });
+
+  it("rejects mixed set counts because one set is a complete circuit", () => {
+    const mixed = { ...DEVELOPMENT_PROGRAMME, exercises: DEVELOPMENT_PROGRAMME.exercises.map((item, index) => ({ ...item, sets: index === 0 ? 1 : 2 })) };
+    expect(validateRunnerProgramme(mixed, EXERCISE_LIBRARY)).toMatchObject({
+      valid: false,
+      errors: expect.arrayContaining(["Circuit sequencing requires the same number of sets for every exercise."]),
     });
   });
 });

@@ -135,19 +135,22 @@ interface Exercise {
   name: string;
   shortInstruction: string;
   description?: string;
+  category?: string;
+  tags?: string[];
   doseType: ExerciseDoseType;
+  recognition: ExerciseRecognitionConfig;
   referenceVideo?: string;
-  defaultDose?: ExerciseDose;
-  defaultSets?: number;
-  defaultRestBetweenSetsSeconds?: number;
+  defaultPrescription: ExercisePrescriptionDefaults;
 }
 
 interface ExercisePrescription {
   exerciseId: string;
+  doseType?: ExerciseDoseType;
   dose: ExerciseDose;
   sets?: number;
   restBetweenSetsSeconds?: number;
-  restAfterSeconds?: number;
+  showDemonstrationBeforeExercise?: boolean;
+  showDemonstrationBetweenSets?: boolean;
 }
 
 interface ExerciseProgramme {
@@ -158,8 +161,16 @@ interface ExerciseProgramme {
 }
 ```
 
-Programme array order is the explicit exercise order. Participant instructions
-are generated deterministically from the dose type and prescription.
+Programme array order is the explicit exercise order. The current runner treats
+one ordered pass as a circuit set, so all prescriptions in a runnable programme
+share one set count. Participant instructions are generated deterministically
+from the dose type and prescription.
+
+Finalized programme sessions have a stable `sessionId`, stable `programmeId`,
+and `programmeNameSnapshot` so later programme renames do not rewrite history.
+They retain timestamps, completion/ended-reason semantics, prescription copies,
+and per-set prescribed versus completed duration or repetition values. Build 7
+persists these compact results separately from high-frequency diagnostic JSONL.
 
 ## Recording format
 

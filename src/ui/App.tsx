@@ -7,23 +7,34 @@ import { CameraPanel } from "./CameraPanel";
 import { ReplayPanel } from "./ReplayPanel";
 import { DEVELOPMENT_PROGRAMME, EXERCISE_LIBRARY } from "../exercise/exerciseLibrary";
 import { ExerciseLibraryView } from "./ExerciseLibraryView";
-import { ProgrammeView } from "./ProgrammeView";
 import { useProgrammeRunner } from "../programme/useProgrammeRunner";
 import { ProgrammeRunner } from "./ProgrammeRunner";
 import { ParticipantMode } from "./ParticipantMode";
 import { participantModeReducer } from "../programme/participantMode";
-import { ProgrammeSessionTracker } from "../session/programmeSession";
+import { ProgrammeSessionTracker, type ProgrammeSessionResult } from "../session/programmeSession";
 import { DEFAULT_PARTICIPANT_PROMPT_SETTINGS } from "../audio/participantPrompts";
 import { ParticipantAudioSettings } from "./ParticipantAudioSettings";
+import { useProgrammeCollection } from "../programme/useProgrammeCollection";
+import { ProgrammesPanel } from "./ProgrammesPanel";
+import { DeveloperNavigation } from "./DeveloperNavigation";
+import { OverviewPanel } from "./OverviewPanel";
+import type { DeveloperTab } from "./developerTabs";
+import { useSessionHistory } from "../session/useSessionHistory";
+import { SessionsPanel } from "./SessionsPanel";
 
 export default function App() {
   const { state, startCamera, stopCamera, videoRef, reattachVideo } = useCamera();
   const movementSession = useMovementSession();
   const replay = useReplay();
+  const sessionHistory = useSessionHistory();
   const [participantMode, dispatchParticipantMode] = useReducer(participantModeReducer, false);
   const [promptSettings, setPromptSettings] = useState(DEFAULT_PARTICIPANT_PROMPT_SETTINGS);
-  const programmeRunner = useProgrammeRunner(DEVELOPMENT_PROGRAMME, EXERCISE_LIBRARY);
+  const [activeDeveloperTab, setActiveDeveloperTab] = useState<DeveloperTab>("overview");
+  const programmes = useProgrammeCollection(DEVELOPMENT_PROGRAMME, EXERCISE_LIBRARY);
+  const activeProgramme = programmes.activeProgramme;
+  const programmeRunner = useProgrammeRunner(activeProgramme, EXERCISE_LIBRARY);
   const programmeSessionRef = useRef<ProgrammeSessionTracker | null>(null);
+  const [programmeSessionResult, setProgrammeSessionResult] = useState<ProgrammeSessionResult | null>(null);
   const previousRunnerStateRef = useRef(programmeRunner.state);
   const handlePoseFrame = useCallback((frame: Parameters<typeof movementSession.processFrame>[0]) => {
     movementSession.processFrame(frame);
@@ -41,10 +52,15 @@ export default function App() {
 
   useEffect(() => {
     const previous = previousRunnerStateRef.current;
-    const prescription = DEVELOPMENT_PROGRAMME.exercises[programmeRunner.state.currentExerciseIndex];
-    programmeSessionRef.current?.transition(previous, programmeRunner.state, prescription?.exerciseId ?? null, prescription?.dose.durationSeconds ?? 0, performance.now());
+    const timestampMs = Date.now();
+    programmeSessionRef.current?.transition(previous, programmeRunner.state, timestampMs);
+    if (programmeRunner.state.phase === "programme-complete" && previous.phase !== "programme-complete") {
+      const result = programmeSessionRef.current?.finish("completed", "completed", timestampMs) ?? null;
+      setProgrammeSessionResult(result);
+      if (result) sessionHistory.save(result);
+    }
     previousRunnerStateRef.current = programmeRunner.state;
-  }, [programmeRunner.state]);
+  }, [activeProgramme, programmeRunner.state]);
 
   const handleStopCamera = () => {
     movementSession.stopRecording();
@@ -70,32 +86,48 @@ export default function App() {
   const launchParticipantMode = () => {
     if (!programmeRunner.validation.valid) return;
     pose.setShowOverlay(true);
-    programmeSessionRef.current = new ProgrammeSessionTracker();
-    movementSession.startRecording();
-    if (programmeRunner.state.phase === "idle" || programmeRunner.state.phase === "programme-complete") {
-      programmeRunner.beginProgramme();
-    }
+    programmeRunner.returnToProgramme();
+    setProgrammeSessionResult(null);
+    programmeSessionRef.current = null;
     dispatchParticipantMode("launch");
   };
 
+  const startParticipantProgramme = () => {
+    if (!programmeRunner.validation.valid || programmeRunner.state.phase !== "idle") return;
+    const timestampMs = Date.now();
+    programmeSessionRef.current = new ProgrammeSessionTracker(activeProgramme, timestampMs);
+    setProgrammeSessionResult(null);
+    movementSession.startRecording();
+    programmeRunner.beginProgramme();
+  };
+
   const finishParticipantMode = () => {
-    const result = programmeSessionRef.current?.finish("completed", "completed", performance.now());
-    if (result) movementSession.finalizeAndDownloadRecording(result);
+    const result = programmeSessionResult ?? programmeSessionRef.current?.finish("completed", "completed", Date.now());
+    if (result) { sessionHistory.save(result); movementSession.finalizeAndDownloadRecording(result); }
     programmeRunner.returnToProgramme();
     dispatchParticipantMode("exit");
   };
 
   const abortParticipantMode = () => {
-    const result = programmeSessionRef.current?.finish("aborted", "participant_exit", performance.now());
-    if (result) movementSession.finalizeAndDownloadRecording(result);
+    const result = programmeSessionRef.current?.finish("aborted", "participant_exit", Date.now());
+    if (result) { sessionHistory.save(result); movementSession.finalizeAndDownloadRecording(result); }
     programmeRunner.returnToProgramme();
     dispatchParticipantMode("exit");
+  };
+
+  const restartParticipantProgramme = () => {
+    const previousResult = programmeSessionResult ?? programmeSessionRef.current?.finish("completed", "completed", Date.now());
+    if (previousResult) { sessionHistory.save(previousResult); movementSession.finalizeAndDownloadRecording(previousResult); }
+    programmeSessionRef.current = new ProgrammeSessionTracker(activeProgramme, Date.now());
+    setProgrammeSessionResult(null);
+    movementSession.startRecording();
+    programmeRunner.startAgain();
   };
 
   if (participantMode) {
     return (
       <ParticipantMode
-        programme={DEVELOPMENT_PROGRAMME}
+        programme={activeProgramme}
         exercises={EXERCISE_LIBRARY}
         runner={programmeRunner}
         cameraStatus={state.status}
@@ -104,8 +136,12 @@ export default function App() {
         videoRef={videoRef}
         canvasRef={pose.canvasRef}
         onStartCamera={handleStartCamera}
+        onCameraSurfaceReady={reattachVideo}
+        onStartProgramme={startParticipantProgramme}
         onEndAndSave={abortParticipantMode}
         onFinish={finishParticipantMode}
+        onStartAgain={restartParticipantProgramme}
+        sessionResult={programmeSessionResult}
         promptSettings={promptSettings}
         onPromptSettingsChange={setPromptSettings}
       />
@@ -123,49 +159,68 @@ export default function App() {
         </p>
       </section>
 
-      <CameraPanel
-        cameraState={state}
-        poseState={pose.state}
-        movementFeatures={movementSession.movementFeatures}
-        sessionActive={movementSession.sessionActive}
-        sessionSummary={movementSession.sessionSummary}
-        recordingActive={movementSession.recordingActive}
-        completedRecording={movementSession.completedRecording}
-        canvasRef={pose.canvasRef}
-        showOverlay={pose.showOverlay}
-        onOverlayChange={pose.setShowOverlay}
-        onStart={handleStartCamera}
-        onStop={handleStopCamera}
-        onStartSession={movementSession.startSession}
-        onStopSession={movementSession.stopSession}
-        onStartRecording={handleStartRecording}
-        onStopRecording={movementSession.stopRecording}
-        onDownloadRecording={movementSession.downloadRecording}
-        videoRef={videoRef}
-      />
+      <DeveloperNavigation activeTab={activeDeveloperTab} onChange={setActiveDeveloperTab} />
 
-      <ReplayPanel
-        replayMode={replay.replayMode}
-        recordingName={replay.recordingName}
-        state={replay.state}
-        output={replay.output}
-        errorMessage={replay.errorMessage}
-        onImport={handleImportRecording}
-        onPlay={replay.play}
-        onPause={replay.pause}
-        onRestart={replay.restart}
-        onStop={replay.stopReplay}
-      />
+      <div id="developer-panel-overview" role="tabpanel" aria-labelledby="developer-tab-overview" hidden={activeDeveloperTab !== "overview"}>
+        <OverviewPanel programme={activeProgramme} cameraStatus={state.status} canLaunch={programmeRunner.validation.valid} onLaunchParticipantMode={launchParticipantMode} />
+      </div>
 
-      <ExerciseLibraryView exercises={EXERCISE_LIBRARY} />
-      <ProgrammeView programme={DEVELOPMENT_PROGRAMME} exercises={EXERCISE_LIBRARY} />
-      <ProgrammeRunner
-        programme={DEVELOPMENT_PROGRAMME}
-        exercises={EXERCISE_LIBRARY}
-        runner={programmeRunner}
-        onLaunchParticipantMode={launchParticipantMode}
-      />
-      <ParticipantAudioSettings settings={promptSettings} onChange={setPromptSettings} />
+      <div id="developer-panel-programmes" role="tabpanel" aria-labelledby="developer-tab-programmes" hidden={activeDeveloperTab !== "programmes"}>
+        <ProgrammesPanel
+          collection={programmes.collection}
+          activeProgramme={activeProgramme}
+          exercises={EXERCISE_LIBRARY}
+          onCreate={programmes.create}
+          onUpdate={programmes.update}
+          onDelete={programmes.remove}
+          onSelect={programmes.select}
+        />
+      </div>
+
+      <div id="developer-panel-exercise-library" role="tabpanel" aria-labelledby="developer-tab-exercise-library" hidden={activeDeveloperTab !== "exercise-library"}>
+        <ExerciseLibraryView exercises={EXERCISE_LIBRARY} />
+      </div>
+
+      <div id="developer-panel-sessions" role="tabpanel" aria-labelledby="developer-tab-sessions" hidden={activeDeveloperTab !== "sessions"}>
+        <SessionsPanel sessions={sessionHistory.sessions} />
+      </div>
+
+      <div id="developer-panel-developer" role="tabpanel" aria-labelledby="developer-tab-developer" hidden={activeDeveloperTab !== "developer"}>
+        <CameraPanel
+          cameraState={state}
+          poseState={pose.state}
+          movementFeatures={movementSession.movementFeatures}
+          sessionActive={movementSession.sessionActive}
+          sessionSummary={movementSession.sessionSummary}
+          recordingActive={movementSession.recordingActive}
+          completedRecording={movementSession.completedRecording}
+          canvasRef={pose.canvasRef}
+          showOverlay={pose.showOverlay}
+          onOverlayChange={pose.setShowOverlay}
+          onStart={handleStartCamera}
+          onStop={handleStopCamera}
+          onStartSession={movementSession.startSession}
+          onStopSession={movementSession.stopSession}
+          onStartRecording={handleStartRecording}
+          onStopRecording={movementSession.stopRecording}
+          onDownloadRecording={movementSession.downloadRecording}
+          videoRef={videoRef}
+        />
+        <ReplayPanel
+          replayMode={replay.replayMode}
+          recordingName={replay.recordingName}
+          state={replay.state}
+          output={replay.output}
+          errorMessage={replay.errorMessage}
+          onImport={handleImportRecording}
+          onPlay={replay.play}
+          onPause={replay.pause}
+          onRestart={replay.restart}
+          onStop={replay.stopReplay}
+        />
+        <ProgrammeRunner programme={activeProgramme} exercises={EXERCISE_LIBRARY} runner={programmeRunner} />
+        <ParticipantAudioSettings settings={promptSettings} onChange={setPromptSettings} />
+      </div>
     </main>
   );
 }

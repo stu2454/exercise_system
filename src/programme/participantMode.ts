@@ -24,6 +24,9 @@ export interface ParticipantViewModel {
   completedExerciseIndices: number[];
   currentExerciseIndex: number;
   durationSeconds: number;
+  doseType: Exercise["doseType"];
+  repetitionTarget: number;
+  completedRepetitions: number;
   exerciseSecondsRemaining: number;
   restSecondsRemaining: number;
 }
@@ -46,8 +49,11 @@ export function createParticipantViewModel(
 ): ParticipantViewModel {
   const exerciseCount = programme.exercises.length;
   const currentPrescription = programme.exercises[state.currentExerciseIndex];
-  const exerciseName = exercises.find((item) => item.id === currentPrescription?.exerciseId)?.name ?? null;
-  const nextExerciseIndex = state.currentExerciseIndex === exerciseCount - 1 ? 0 : state.currentExerciseIndex + 1;
+  const currentExercise = exercises.find((item) => item.id === currentPrescription?.exerciseId);
+  const exerciseName = currentExercise?.name ?? null;
+  const nextExerciseIndex = state.currentExerciseIndex === exerciseCount - 1
+    ? 0
+    : state.currentExerciseIndex + 1;
   const nextSetNumber = state.currentExerciseIndex === exerciseCount - 1
     ? state.currentSetIndex + 2
     : state.currentSetIndex + 1;
@@ -79,6 +85,9 @@ export function createParticipantViewModel(
     completedExerciseIndices: Array.from({ length: Math.max(0, completedThrough + 1) }, (_, index) => index),
     currentExerciseIndex: state.currentExerciseIndex,
     durationSeconds: currentPrescription?.dose.durationSeconds ?? 0,
+    doseType: currentPrescription?.doseType ?? currentExercise?.doseType ?? "free",
+    repetitionTarget: currentPrescription?.dose.repetitions ?? 0,
+    completedRepetitions: state.completedRepetitions,
     exerciseSecondsRemaining: Math.max(0, Math.ceil(state.exerciseTimeRemainingSeconds)),
     restSecondsRemaining: Math.max(0, Math.ceil(state.restTimeRemainingSeconds)),
   };

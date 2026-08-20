@@ -4,14 +4,23 @@ import { exerciseInstruction, restInstruction, setProgressInstruction } from "./
 import type { Exercise, ExerciseProgramme, ExercisePrescription } from "./types";
 import { findExerciseById, validateDose, validateExercise, validatePrescription } from "./validation";
 import { referenceVideoFilename, referenceVideoPath } from "./videoAssets";
+import { prescriptionFromExerciseDefaults } from "./prescriptions";
 
 const repetitionsExercise: Exercise = {
   id: "test-exercise",
   name: "Test Exercise",
   shortInstruction: "Follow the demonstration.",
   doseType: "repetitions",
+  recognition: { type: "generic-repetition-event" },
   referenceVideo: "/videos/test.mov",
-  defaultDose: { repetitions: 8 },
+  defaultPrescription: {
+    doseType: "repetitions",
+    dose: { repetitions: 8 },
+    sets: 2,
+    restBetweenSetsSeconds: 30,
+    showDemonstrationBeforeExercise: true,
+    showDemonstrationBetweenSets: false,
+  },
 };
 
 describe("Exercise model", () => {
@@ -36,6 +45,32 @@ describe("Exercise model", () => {
 describe("dose validation", () => {
   it("validates repetitions", () => {
     expect(validateDose("repetitions", { repetitions: 8 }).valid).toBe(true);
+  });
+
+  it("allows a programme prescription to override the library dose type", () => {
+    expect(validatePrescription({
+      exerciseId: repetitionsExercise.id,
+      doseType: "duration",
+      dose: { durationSeconds: 30 },
+    }, repetitionsExercise).valid).toBe(true);
+    expect(repetitionsExercise.doseType).toBe("repetitions");
+  });
+
+  it("validates consolidated exercise default prescriptions", () => {
+    expect(validateExercise({
+      ...repetitionsExercise,
+      recognition: { type: "generic-repetition-event" },
+      category: "strength",
+      tags: ["standing"],
+      defaultPrescription: {
+        doseType: "repetitions",
+        dose: { repetitions: 10 },
+        sets: 2,
+        restBetweenSetsSeconds: 30,
+        showDemonstrationBeforeExercise: true,
+        showDemonstrationBetweenSets: false,
+      },
+    }).valid).toBe(true);
   });
 
   it("validates repetitions on each side", () => {
@@ -94,10 +129,6 @@ describe("prescriptions and programmes", () => {
       sets: 3,
       restBetweenSetsSeconds: 20,
     }, durationExercise).valid).toBe(true);
-  });
-
-  it("accepts restAfterSeconds", () => {
-    expect(validatePrescription({ exerciseId: repetitionsExercise.id, dose: { repetitions: 8 }, restAfterSeconds: 20 }, repetitionsExercise).valid).toBe(true);
   });
 
   it("preserves explicit programme ordering", () => {
@@ -192,15 +223,35 @@ describe("video assets", () => {
     );
     expect(EXERCISE_LIBRARY.every((exercise) => (
       exercise.doseType === "duration" &&
-      exercise.defaultDose?.durationSeconds === 60 &&
-      exercise.defaultSets === 3 &&
-      exercise.defaultRestBetweenSetsSeconds === 20
+      exercise.recognition.type === "none" &&
+      exercise.defaultPrescription.doseType === "duration" &&
+      exercise.defaultPrescription.dose.durationSeconds === 60 &&
+      exercise.defaultPrescription.sets === 3 &&
+      exercise.defaultPrescription.restBetweenSetsSeconds === 20
     ))).toBe(true);
     expect(DEVELOPMENT_PROGRAMME.exercises).toHaveLength(9);
     expect(DEVELOPMENT_PROGRAMME.exercises.every((prescription) => (
+      prescription.doseType === "duration" &&
       prescription.dose.durationSeconds === 60 &&
       prescription.sets === 3 &&
       prescription.restBetweenSetsSeconds === 20
     ))).toBe(true);
+  });
+
+  it("clones programme prescriptions without mutating library defaults", () => {
+    const exercise = EXERCISE_LIBRARY[0];
+    const first = prescriptionFromExerciseDefaults(exercise);
+    const second = prescriptionFromExerciseDefaults(exercise);
+    first.dose.durationSeconds = 15;
+    first.sets = 1;
+    expect(second.dose.durationSeconds).toBe(60);
+    expect(second.sets).toBe(3);
+    expect(exercise.defaultPrescription.dose.durationSeconds).toBe(60);
+    expect(exercise.defaultPrescription.sets).toBe(3);
+  });
+
+  it("uses stable unique IDs and explicit searchable metadata", () => {
+    expect(new Set(EXERCISE_LIBRARY.map((exercise) => exercise.id)).size).toBe(EXERCISE_LIBRARY.length);
+    expect(EXERCISE_LIBRARY.every((exercise) => exercise.category && exercise.tags?.length)).toBe(true);
   });
 });

@@ -25,7 +25,6 @@ export function ExerciseCard({
   children,
 }: ExerciseCardProps) {
   const instruction = exerciseInstruction(exercise, prescription);
-  const rest = restInstruction(prescription.restAfterSeconds);
   const setCount = prescription.sets ?? 1;
   const betweenSetsRest = restInstruction(prescription.restBetweenSetsSeconds);
 
@@ -49,8 +48,7 @@ export function ExerciseCard({
           {startLabel}
         </button>
       )}
-      {rest && <p className="exercise-card__rest">After completion: {rest}</p>}
-      {setCount > 1 && betweenSetsRest && <p className="exercise-card__rest">Between sets: {betweenSetsRest}</p>}
+      {betweenSetsRest && <p className="exercise-card__rest">After exercise: {betweenSetsRest}</p>}
     </article>
   );
 }

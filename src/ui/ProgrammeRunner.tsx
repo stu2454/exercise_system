@@ -1,12 +1,12 @@
 import type { Exercise, ExerciseProgramme } from "../exercise/types";
 import type { ReturnTypeOfProgrammeRunner } from "../programme/useProgrammeRunnerTypes";
 import { ExerciseCard } from "./ExerciseCard";
+import { shouldPlayDemonstration } from "../programme/demonstrationPlayback";
 
 interface ProgrammeRunnerProps {
   programme: ExerciseProgramme;
   exercises: readonly Exercise[];
   runner: ReturnTypeOfProgrammeRunner;
-  onLaunchParticipantMode: () => void;
 }
 
 const GESTURE_LABELS = {
@@ -23,7 +23,6 @@ export function ProgrammeRunner({
   programme,
   exercises,
   runner,
-  onLaunchParticipantMode,
 }: ProgrammeRunnerProps) {
   const { state, currentExercise, currentPrescription } = runner;
   const exerciseCount = programme.exercises.length;
@@ -37,19 +36,12 @@ export function ProgrammeRunner({
   const nextPrescription = programme.exercises[nextExerciseIndex];
   const nextExercise = exercises.find((exercise) => exercise.id === nextPrescription?.exerciseId);
   const active = state.phase !== "idle" && state.phase !== "programme-complete";
+  const doseType = currentPrescription?.doseType ?? currentExercise?.doseType;
 
   return (
     <section className="development-section programme-runner">
-      <p className="eyebrow">Build 6B · Participant programme runner</p>
-      <h2>{programme.name}</h2>
-      <button
-        className="button button--primary launch-participant-mode"
-        type="button"
-        onClick={onLaunchParticipantMode}
-        disabled={!runner.validation.valid}
-      >
-        LAUNCH PARTICIPANT MODE
-      </button>
+      <p className="eyebrow">Developer test runner</p>
+      <h2>Test {programme.name}</h2>
 
       {state.phase === "idle" && (
         <div className="runner-message">
@@ -61,12 +53,12 @@ export function ProgrammeRunner({
             </div>
           )}
           <button
-            className="button button--primary"
+            className="button button--secondary"
             type="button"
             disabled={!runner.validation.valid}
             onClick={runner.beginProgramme}
           >
-            START PROGRAMME
+            START TEST RUN
           </button>
         </div>
       )}
@@ -93,15 +85,18 @@ export function ProgrammeRunner({
               exercise={currentExercise}
               prescription={currentPrescription}
               onStart={state.phase === "ready" ? runner.beginExercise : undefined}
-              videoActive={state.phase === "exercising" && !state.paused}
+              videoActive={shouldPlayDemonstration(state.phase, state.paused, {
+                showBeforeExercise: currentPrescription.showDemonstrationBeforeExercise,
+                showBetweenSets: currentPrescription.showDemonstrationBetweenSets,
+              })}
               currentSetNumber={state.currentSetIndex + 1}
             >
               {state.phase === "ready" ? (
                 <p>Raise your right arm when you are ready, or use the button below.</p>
               ) : (
                 <div className="runner-countdown">
-                  <strong>{roundedSeconds(state.exerciseTimeRemainingSeconds)}</strong>
-                  <span>seconds remaining</span>
+                  <strong>{doseType === "repetitions" ? state.completedRepetitions : roundedSeconds(state.exerciseTimeRemainingSeconds)}</strong>
+                  <span>{doseType === "repetitions" ? `of ${currentPrescription.dose.repetitions} repetitions` : "seconds remaining"}</span>
                   <p>{state.paused ? "Programme paused." : "Continue exercising."}</p>
                 </div>
               )}
@@ -116,7 +111,7 @@ export function ProgrammeRunner({
               <p>Rest for up to {roundedSeconds(state.restTimeRemainingSeconds)} seconds.</p>
               <p>Raise your right arm when ready to continue.</p>
               <button className="button button--primary" type="button" onClick={runner.beginExercise}>
-                CONTINUE NOW
+                SKIP REST
               </button>
             </div>
           )}
@@ -145,6 +140,9 @@ export function ProgrammeRunner({
             )}
             <button className="button button--secondary" type="button" onClick={runner.restartExercise}>Restart current exercise</button>
             <button className="button button--secondary" type="button" onClick={runner.skip}>Skip to next exercise — DEVELOPMENT ONLY</button>
+            {doseType === "repetitions" && state.phase === "exercising" && (
+              <button className="button button--secondary" type="button" onClick={runner.addDeveloperRepetition}>+1 Rep — DEVELOPMENT ONLY</button>
+            )}
           </div>
         </>
       )}

@@ -49,16 +49,58 @@ available.
 
 ## Participant programme runner
 
-The Build 6B runner treats a set as one complete pass through the ordered
-exercise programme. For nine exercises and three sets the sequence is exercises
-1–9, then 1–9, then 1–9. It never completes all sets of one exercise before
-moving to the next exercise.
+The current Build 6 runner uses circuit sequencing: one set is a complete
+ordered pass through all nine exercises. It runs Exercise 1 through Exercise 9
+once, then starts Exercise 1 again for the next set, until the configured number
+of sets is complete. All prescriptions in a circuit therefore use the same set
+count. Transition calculation remains isolated in pure runner helpers so a
+future alternative sequencing strategy can be introduced without coupling it
+to UI or recognition; no alternative mode is implemented yet.
 
 The explicit runtime phases are idle, ready, exercising, resting, set complete
 and programme complete. Exercise and transition countdowns advance
 automatically, while manual controls remain available for starting, continuing,
 pausing, resuming and development-only skipping. Only the current reference
 video is active, looped and muted during an exercise.
+
+Stage 7 supports duration and repetition prescriptions through the same runner.
+Duration exercises finish when their countdown reaches zero. Repetition
+exercises consume typed, exercise-scoped `repetition-completed` events and stop
+at the prescribed target; the developer UI provides a `+1 Rep` control for
+testing this boundary without exercise-specific pose recognition. Events for a
+different exercise, paused runner, completed target or non-repetition exercise
+are ignored. A positive configured rest shows a countdown that can be skipped;
+zero rest advances without rendering an unnecessary rest screen.
+
+Programmes are stored in a versioned localStorage collection with a persisted
+active programme ID. Missing, malformed, incompatible, blocked or empty storage
+falls back to an independent copy of the supplied default programme. The app,
+runner, participant view and session transition tracking consume the selected
+active programme rather than importing a fixed sequence directly.
+
+## Programme editor
+
+Stage 8 adds a developer programme editor backed by that same stored collection.
+It supports creating, selecting and deleting local programmes; searching and
+adding library exercises; removing and reordering programme exercises; and
+editing duration or repetition targets, the shared circuit set count, transition
+rest, and demonstration preferences. A programme receives independent copies of
+library defaults, so editing a prescription never mutates the Exercise Library.
+At least one programme and one exercise are retained. The editor deliberately
+offers only duration and repetition modes supported by the current runner while
+the domain model retains its additional dose types for later builds.
+
+## Programme session result
+
+Stage 9 presents a simple completion summary with completed versus prescribed
+sets for every exercise. The underlying `ProgrammeSessionResult` retains the
+programme ID, start and end timestamps, completion status, independent copies of
+the prescriptions, and per-set duration or repetition targets, achieved values,
+and completion flags. Skipped and aborted sets remain partial rather than being
+reported as completed. A compact interval timeline remains in recording exports
+for diagnostic compatibility. This structure prepares for later adherence work
+without introducing a dashboard or interpreting pose-derived activity as
+exercise correctness.
 
 The ready gesture consumes filtered canonical participant landmarks, not
 MediaPipe output. It requires adequate pose quality and a right wrist at least
@@ -69,7 +111,7 @@ exercise is active.
 
 ## Full-screen participant mode
 
-Build 6C separates the configuration/developer interface from a dedicated
+Build 6 separates the configuration/developer interface from a dedicated
 participant layout. Launching participant mode begins at the ready screen and
 hides camera diagnostics, replay tools, exercise-library configuration and
 development controls. The participant sees one exercise, large set/exercise
@@ -102,7 +144,7 @@ actions always remain available.
 
 ## Split-screen tracking and graceful exit
 
-Build 6D presents the current reference exercise and the existing live
+The participant view presents the current reference exercise and the existing live
 participant camera/pose pipeline side by side. The camera and canonical skeleton
 are both mirrored with CSS for a natural self-view. This is display-only:
 MediaPipe inference, canonical landmark names and right/left gesture semantics
@@ -134,5 +176,6 @@ Browser-native Escape may be consumed solely to leave fullscreen, so the
 on-screen control is always retained and leaving fullscreen never resets the
 programme. Data remains in memory until JSONL download. An abrupt tab, browser,
 device or process crash can therefore still lose the current partial interval
-and any completed intervals that have not yet been exported; no backend or
-persistent browser database is introduced in Build 6D.
+and any completed intervals that have not yet been exported. Programme
+configuration persists in localStorage, but session recordings remain in memory
+until download and no backend is introduced in Build 6.

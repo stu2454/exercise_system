@@ -13,7 +13,7 @@ export function ProgrammeView({ programme, exercises }: ProgrammeViewProps) {
       <p className="eyebrow">Build 6 · Development programme</p>
       <h2>{programme.name}</h2>
       {programme.description && <p>{programme.description}</p>}
-      <p>Complete all {programme.exercises.length} exercises once, then begin the next set.</p>
+      <p>Complete all {programme.exercises.length} exercises once, then repeat the full set.</p>
       <ol>
         {programme.exercises.map((prescription, index) => {
           const exercise = findExerciseById(exercises, prescription.exerciseId);
@@ -25,7 +25,6 @@ export function ProgrammeView({ programme, exercises }: ProgrammeViewProps) {
               <strong>{exercise.name}</strong>
               <span>{exerciseInstruction(exercise, prescription) ?? "Invalid prescription."}</span>
               {prescription.restBetweenSetsSeconds !== undefined && <small>Transition: {restInstruction(prescription.restBetweenSetsSeconds)}</small>}
-              {prescription.restAfterSeconds !== undefined && <small>{restInstruction(prescription.restAfterSeconds)}</small>}
             </li>
           );
         })}

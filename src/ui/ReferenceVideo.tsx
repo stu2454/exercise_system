@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { referenceVideoFilename, referenceVideoMimeType } from "../exercise/videoAssets";
+import { publicAssetUrl } from "../app/basePath";
 
 interface ReferenceVideoProps {
   src?: string;
@@ -8,6 +9,7 @@ interface ReferenceVideoProps {
   loop?: boolean;
   muted?: boolean;
   showControls?: boolean;
+  participantFriendly?: boolean;
 }
 
 function mediaErrorMessage(error: MediaError | null): string {
@@ -28,6 +30,7 @@ export function ReferenceVideo({
   loop = false,
   muted = false,
   showControls = true,
+  participantFriendly = false,
 }: ReferenceVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [warning, setWarning] = useState<string | null>(null);
@@ -70,20 +73,29 @@ export function ReferenceVideo({
     <div className="reference-video">
       <video
         ref={videoRef}
+        autoPlay={active}
         controls={showControls}
         loop={loop}
         muted={muted}
         playsInline
         preload="metadata"
-        src={src}
+        src={publicAssetUrl(src)}
         aria-label={`${title} reference demonstration`}
-        onCanPlay={() => setError(null)}
+        onCanPlay={(event) => {
+          setError(null);
+          if (active) {
+            void event.currentTarget.play().catch((playbackError: unknown) => {
+              const detail = playbackError instanceof Error ? playbackError.message : "Playback was rejected.";
+              setError(`${filename}: ${detail}`);
+            });
+          }
+        }}
         onError={(event) => setError(`${filename}: ${mediaErrorMessage(event.currentTarget.error)}`)}
       >
         Your browser does not support native video playback.
       </video>
-      {warning && <p className="video-message video-message--warning">{warning}</p>}
-      {error && <p className="video-message video-message--error" role="alert">{error}</p>}
+      {warning && <p className="video-message video-message--warning">{participantFriendly ? "This demonstration video may not be supported by your browser." : warning}</p>}
+      {error && <p className="video-message video-message--error" role="alert">{participantFriendly ? "The demonstration video could not be played. You can continue with the exercise." : error}</p>}
     </div>
   );
 }

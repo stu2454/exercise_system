@@ -105,3 +105,42 @@ are recorded in
 Raw participant video is **not stored by default**.
 
 The preferred data product is a time-stamped stream of canonical body landmarks and derived movement features. Video recording, if added for development, must require an explicit action and must never be committed to Git.
+
+## Client Demo
+
+The Client Demo is the participant-facing, browser-only version intended for
+external demonstration. It uses the same exercise library, programme runner,
+camera, pose overlay, reference-video behaviour and session-result lifecycle as
+the developer application, but runs one pass through the nine current exercises
+and does not include developer navigation or tools.
+
+This is a prototype technology demonstration, not a validated clinical system.
+Camera and pose processing remain in the browser; raw camera video is not
+recorded or uploaded.
+
+### Run modes
+
+```bash
+npm run dev          # full local developer application
+npm run dev:demo     # Client Demo locally
+npm run build        # developer production build in dist/
+npm run build:demo   # static Client Demo build in dist-demo/
+npm run preview:demo # preview the built Client Demo
+```
+
+For a repository-path Pages deployment, supply the Vite base path, for example:
+
+```bash
+npm run build:demo -- --base /exercise_system/
+```
+
+### GitHub Pages
+
+`.github/workflows/deploy-client-demo.yml` tests and builds only the static
+Client Demo, derives the base path from the repository name, uploads
+`dist-demo/`, and deploys it with GitHub Pages Actions. In GitHub, select:
+
+**Repository Settings → Pages → Source → GitHub Actions**
+
+The expected URL is `https://<username>.github.io/<repository-name>/`. See
+[`docs/13-client-demo.md`](docs/13-client-demo.md) for full details.

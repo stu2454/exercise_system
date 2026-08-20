@@ -64,13 +64,16 @@ export function validateExercise(exercise: Exercise): ValidationResult {
   if (exercise.referenceVideo && referenceVideoFilename(exercise.referenceVideo) === null) {
     errors.push("Exercise referenceVideo must be a /videos/*.mov or /videos/*.mp4 path.");
   }
-  if (exercise.defaultDose) errors.push(...validateDose(exercise.doseType, exercise.defaultDose).errors);
-  if (exercise.defaultSets !== undefined && !positiveInteger(exercise.defaultSets)) {
-    errors.push("defaultSets must be a positive integer.");
+  errors.push(...validateDose(
+    exercise.defaultPrescription.doseType,
+    exercise.defaultPrescription.dose,
+  ).errors);
+  if (!positiveInteger(exercise.defaultPrescription.sets)) {
+    errors.push("defaultPrescription sets must be a positive integer.");
   }
   errors.push(...validateOptionalNonNegativeInteger(
-    "defaultRestBetweenSetsSeconds",
-    exercise.defaultRestBetweenSetsSeconds,
+    "defaultPrescription restBetweenSetsSeconds",
+    exercise.defaultPrescription.restBetweenSetsSeconds,
   ));
   return result(errors);
 }
@@ -84,7 +87,7 @@ export function validatePrescription(
     errors.push(`Exercise not found: ${prescription.exerciseId}.`);
     return result(errors);
   }
-  errors.push(...validateDose(exercise.doseType, prescription.dose).errors);
+  errors.push(...validateDose(prescription.doseType ?? exercise.doseType, prescription.dose).errors);
   if (prescription.sets !== undefined && !positiveInteger(prescription.sets)) {
     errors.push("sets must be a positive integer.");
   }
@@ -92,7 +95,6 @@ export function validatePrescription(
     "restBetweenSetsSeconds",
     prescription.restBetweenSetsSeconds,
   ));
-  errors.push(...validateOptionalNonNegativeInteger("restAfterSeconds", prescription.restAfterSeconds));
   return result(errors);
 }
 

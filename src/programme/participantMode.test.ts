@@ -36,6 +36,14 @@ describe("participant mode view model", () => {
     expect(participantModeReducer(true, "exit")).toBe(false);
   });
 
+  it("represents an unstarted participant programme as the idle start screen", () => {
+    expect(view(createProgrammeRunnerState(DEVELOPMENT_PROGRAMME))).toMatchObject({
+      screen: "idle",
+      exerciseCount: 9,
+      totalSets: 3,
+    });
+  });
+
   it("starts on the READY screen with human-readable set and exercise values", () => {
     expect(view()).toMatchObject({
       screen: "ready",
@@ -57,7 +65,7 @@ describe("participant mode view model", () => {
     expect(model).not.toHaveProperty("gestureStatus");
   });
 
-  it("models the rest screen and next exercise", () => {
+  it("models rest before the next exercise in the same set", () => {
     const active = startCurrentExercise(
       startProgramme(createProgrammeRunnerState(DEVELOPMENT_PROGRAMME), DEVELOPMENT_PROGRAMME),
       DEVELOPMENT_PROGRAMME,
@@ -66,6 +74,7 @@ describe("participant mode view model", () => {
       screen: "rest",
       nextExerciseName: "Exercise 02",
       nextExerciseNumber: 2,
+      nextSetNumber: 1,
       restSecondsRemaining: 20,
     });
   });
@@ -74,12 +83,12 @@ describe("participant mode view model", () => {
     expect(createParticipantSplitScreenModel(view())).toEqual({ leftPanel: "reference-video", rightPanel: "participant-camera-with-pose-overlay", displayedExerciseIndex: 0 });
   });
 
-  it("changes the displayed reference to the upcoming exercise during rest", () => {
+  it("shows the next exercise reference during a transition", () => {
     const active = startCurrentExercise(startProgramme(createProgrammeRunnerState(DEVELOPMENT_PROGRAMME), DEVELOPMENT_PROGRAMME), DEVELOPMENT_PROGRAMME);
     expect(createParticipantSplitScreenModel(view(tickProgramme(active, DEVELOPMENT_PROGRAMME, 60))).displayedExerciseIndex).toBe(1);
   });
 
-  it("models the set transition after Exercise 9", () => {
+  it("advances to Exercise 1 of the next set after Exercise 9", () => {
     const state = {
       ...createProgrammeRunnerState(DEVELOPMENT_PROGRAMME),
       phase: "exercising" as const,
@@ -89,7 +98,6 @@ describe("participant mode view model", () => {
     };
     expect(view(tickProgramme(state, DEVELOPMENT_PROGRAMME, 60))).toMatchObject({
       screen: "rest",
-      setNumber: 1,
       nextSetNumber: 2,
       nextExerciseNumber: 1,
       nextExerciseName: "Exercise 01",
@@ -106,7 +114,7 @@ describe("participant mode view model", () => {
     };
     const model = view(tickProgramme(state, DEVELOPMENT_PROGRAMME, 60));
     expect(model).toMatchObject({ screen: "complete", totalSets: 3, exerciseCount: 9 });
-    expect(model.totalSets * model.exerciseCount).toBe(27);
+    expect(DEVELOPMENT_PROGRAMME.exercises.reduce((sum, item) => sum + (item.sets ?? 1), 0)).toBe(27);
   });
 
   it.each([

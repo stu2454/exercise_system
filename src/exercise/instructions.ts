@@ -10,7 +10,7 @@ function baseDoseInstruction(
   prescription: ExercisePrescription,
 ): string {
   const dose = prescription.dose;
-  switch (exercise.doseType) {
+  switch (prescription.doseType ?? exercise.doseType) {
     case "repetitions":
       return `${dose.repetitions} ${plural(dose.repetitions!, "repetition")}`;
     case "repetitions-each-side":
@@ -29,20 +29,21 @@ export function exerciseInstruction(
   prescription: ExercisePrescription,
 ): string | null {
   if (!validatePrescription(prescription, exercise).valid) return null;
-  if (exercise.doseType === "free") return "Continue until instructed to stop.";
+  const doseType = prescription.doseType ?? exercise.doseType;
+  if (doseType === "free") return "Continue until instructed to stop.";
 
   const dose = baseDoseInstruction(exercise, prescription);
-  if (exercise.doseType === "duration") {
+  if (doseType === "duration") {
     const instruction = `Perform this exercise for ${dose}.`;
     return prescription.sets && prescription.sets > 1
       ? `${instruction} Complete ${prescription.sets} sets.`
       : instruction;
   }
   if (prescription.sets && prescription.sets > 1) {
-    if (exercise.doseType === "hold") return `Complete ${prescription.sets} sets. Hold for ${dose}.`;
+    if (doseType === "hold") return `Complete ${prescription.sets} sets. Hold for ${dose}.`;
     return `Complete ${prescription.sets} sets of ${dose}.`;
   }
-  if (exercise.doseType === "hold") return `Hold for ${dose}.`;
+  if (doseType === "hold") return `Hold for ${dose}.`;
   return `Complete ${dose}.`;
 }
 
@@ -59,9 +60,9 @@ export function setProgressInstruction(currentSet: number, totalSets: number): s
   return `Set ${currentSet} of ${totalSets}`;
 }
 
-export function restInstruction(restAfterSeconds: number | undefined): string | null {
-  if (restAfterSeconds === undefined || !Number.isInteger(restAfterSeconds) || restAfterSeconds < 0) {
+export function restInstruction(restSeconds: number | undefined): string | null {
+  if (restSeconds === undefined || !Number.isInteger(restSeconds) || restSeconds < 0) {
     return null;
   }
-  return `Rest for ${restAfterSeconds} ${plural(restAfterSeconds, "second")}.`;
+  return `Rest for ${restSeconds} ${plural(restSeconds, "second")}.`;
 }

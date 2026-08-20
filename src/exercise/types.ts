@@ -12,24 +12,47 @@ export interface ExerciseDose {
   holdSeconds?: number;
 }
 
+export type ExerciseRecognitionType = "none" | "generic-repetition-event";
+export type RecognitionConfigValue = string | number | boolean;
+
+export interface ExerciseRecognitionConfig {
+  type: ExerciseRecognitionType;
+  parameters?: Readonly<Record<string, RecognitionConfigValue>>;
+}
+
 export interface Exercise {
   id: string;
   name: string;
   shortInstruction: string;
   description?: string;
+  category?: string;
+  tags?: string[];
+  equipment?: string[];
+  difficulty?: "easy" | "moderate" | "hard";
   doseType: ExerciseDoseType;
+  recognition: ExerciseRecognitionConfig;
   referenceVideo?: string;
-  defaultDose?: ExerciseDose;
-  defaultSets?: number;
-  defaultRestBetweenSetsSeconds?: number;
+  defaultPrescription: ExercisePrescriptionDefaults;
+}
+
+export interface ExercisePrescriptionDefaults {
+  doseType: ExerciseDoseType;
+  dose: ExerciseDose;
+  sets: number;
+  restBetweenSetsSeconds: number;
+  showDemonstrationBeforeExercise: boolean;
+  showDemonstrationBetweenSets: boolean;
 }
 
 export interface ExercisePrescription {
   exerciseId: string;
+  /** Optional programme-specific override; the library definition is immutable. */
+  doseType?: ExerciseDoseType;
   dose: ExerciseDose;
   sets?: number;
   restBetweenSetsSeconds?: number;
-  restAfterSeconds?: number;
+  showDemonstrationBeforeExercise?: boolean;
+  showDemonstrationBetweenSets?: boolean;
 }
 
 export interface ExerciseProgramme {

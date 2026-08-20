@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { createBrowserSpeechAdapter, createHtmlAudioAdapter, ParticipantPromptService, type BrowserVoiceOption, type ParticipantPrompt, type ParticipantPromptSettings } from "./participantPrompts";
+import { createBrowserSpeechAdapter, createHtmlAudioAdapter, mergeBrowserVoiceOptions, ParticipantPromptService, type BrowserVoiceOption, type ParticipantPrompt, type ParticipantPromptSettings } from "./participantPrompts";
 
 function browserVoices(): BrowserVoiceOption[] {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return [];
@@ -12,7 +12,7 @@ export function useParticipantPrompts(prompt: ParticipantPrompt | null, settings
   const [voices, setVoices] = useState<BrowserVoiceOption[]>(browserVoices);
   useEffect(() => {
     if (!("speechSynthesis" in window)) return;
-    const refresh = () => setVoices(browserVoices());
+    const refresh = () => setVoices((known) => mergeBrowserVoiceOptions(known, browserVoices()));
     refresh(); window.speechSynthesis.addEventListener?.("voiceschanged", refresh);
     return () => window.speechSynthesis.removeEventListener?.("voiceschanged", refresh);
   }, []);

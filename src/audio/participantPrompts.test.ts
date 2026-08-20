@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { DEFAULT_PARTICIPANT_PROMPT_SETTINGS, ParticipantPromptService, rankBrowserVoices, selectBrowserVoice, type BrowserSpeechAdapter, type BrowserVoiceOption, type NaturalAudioAdapter, type ParticipantPromptSettings } from "./participantPrompts";
+import { DEFAULT_PARTICIPANT_PROMPT_SETTINGS, mergeBrowserVoiceOptions, ParticipantPromptService, rankBrowserVoices, selectBrowserVoice, type BrowserSpeechAdapter, type BrowserVoiceOption, type NaturalAudioAdapter, type ParticipantPromptSettings } from "./participantPrompts";
 
 const prompt = { key: "begin-1", event: "exerciseBegin" as const, text: "Begin.", assetPath: "/audio/begin.mp3" };
 const voices: BrowserVoiceOption[] = [
@@ -16,4 +16,8 @@ describe("ParticipantPromptService", () => {
   it("mutes and cancels both delivery modes", async () => { const { natural, speech, service } = setup(true); await service.announce(prompt, settings({ enabled: false }), voices); expect(natural.play).not.toHaveBeenCalled(); expect(speech.speak).not.toHaveBeenCalled(); expect(natural.cancel).toHaveBeenCalledOnce(); });
   it("passes configured volume to natural audio and TTS", async () => { const { natural, speech, service } = setup(false); await service.announce(prompt, settings({ volume: 0.35 }), voices); expect(natural.play).toHaveBeenCalledWith(expect.any(String), 0.35); expect(speech.speak).toHaveBeenCalledWith("Begin.", expect.objectContaining({ volume: 0.35 }), expect.anything()); });
   it("selects en-AU, then en-GB, then another English voice", () => { expect(rankBrowserVoices(voices).map((voice) => voice.voiceURI).slice(0, 3)).toEqual(["au", "gb", "us"]); expect(selectBrowserVoice(voices, null)?.voiceURI).toBe("au"); expect(selectBrowserVoice(voices.filter((v) => v.voiceURI !== "au"), null)?.voiceURI).toBe("gb"); expect(selectBrowserVoice(voices.filter((v) => !["au", "gb"].includes(v.voiceURI)), null)?.voiceURI).toBe("us"); expect(selectBrowserVoice(voices, "us")?.voiceURI).toBe("us"); });
+  it("retains a manually selectable voice across partial browser voice refreshes", () => {
+    const refreshed = mergeBrowserVoiceOptions(voices, voices.filter((voice) => voice.voiceURI !== "us"));
+    expect(selectBrowserVoice(refreshed, "us")?.voiceURI).toBe("us");
+  });
 });

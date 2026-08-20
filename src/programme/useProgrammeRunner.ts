@@ -5,6 +5,7 @@ import {
   createProgrammeRunnerState,
   currentRunnerExercise,
   pauseProgramme,
+  processProgrammeRunnerEvent,
   restartCurrentExercise,
   resumeProgramme,
   skipToNextExercise,
@@ -21,6 +22,7 @@ import {
   type ReadyGestureStatus,
   type ReadyGestureDiagnostics,
 } from "./readyGesture";
+import type { ProgrammeRunnerEvent } from "./runnerEvents";
 
 export function useProgrammeRunner(
   programme: ExerciseProgramme,
@@ -28,6 +30,7 @@ export function useProgrammeRunner(
 ) {
   const validation = validateRunnerProgramme(programme, exercises);
   const detectorRef = useRef(new RightArmReadyGestureDetector());
+  const programmeRef = useRef(programme);
   const gestureAdvanceTimerRef = useRef<number | null>(null);
   const stateRef = useRef(createProgrammeRunnerState(programme));
   const [state, setState] = useState(stateRef.current);
@@ -101,6 +104,17 @@ export function useProgrammeRunner(
     if (gestureAdvanceTimerRef.current !== null) window.clearTimeout(gestureAdvanceTimerRef.current);
   }, []);
 
+  useEffect(() => {
+    if (programmeRef.current === programme) return;
+    programmeRef.current = programme;
+    clearGestureAdvance();
+    detectorRef.current.reset(false);
+    setGestureStatus("not-detected");
+    const initial = createProgrammeRunnerState(programme);
+    stateRef.current = initial;
+    setState(initial);
+  }, [clearGestureAdvance, programme]);
+
   const beginProgramme = useCallback(() => {
     if (!validation.valid) return;
     clearGestureAdvance();
@@ -139,6 +153,21 @@ export function useProgrammeRunner(
     apply((current) => skipToNextExercise(current, programme));
   }, [apply, clearGestureAdvance, programme]);
 
+  const processRunnerEvent = useCallback((event: ProgrammeRunnerEvent) => {
+    apply((current) => processProgrammeRunnerEvent(current, programme, event));
+  }, [apply, programme]);
+
+  const addDeveloperRepetition = useCallback(() => {
+    const exerciseId = programme.exercises[stateRef.current.currentExerciseIndex]?.exerciseId;
+    if (!exerciseId) return;
+    processRunnerEvent({
+      type: "repetition-completed",
+      exerciseId,
+      timestampMs: performance.now(),
+      source: "developer",
+    });
+  }, [processRunnerEvent, programme]);
+
   const returnToProgramme = useCallback(() => {
     clearGestureAdvance();
     detectorRef.current.reset(true);
@@ -160,6 +189,8 @@ export function useProgrammeRunner(
     gestureStatus,
     gestureDiagnostics,
     processPoseFrame,
+    processRunnerEvent,
+    addDeveloperRepetition,
     beginProgramme,
     beginExercise,
     pause: () => apply(pauseProgramme),

@@ -183,7 +183,7 @@ describe("CanonicalDataRecorder", () => {
   it("exports additive aborted-session termination metadata", () => {
     const recorder = new CanonicalDataRecorder();
     start(recorder);
-    const completed = recorder.stop({ status: "aborted", endedReason: "participant_exit", endedAtTimestampMs: 500, intervals: [] })!;
+    const completed = recorder.stop({ sessionId: "session-a", programmeId: "programme-a", programmeNameSnapshot: "Programme A", startedAtTimestampMs: 100, status: "aborted", endedReason: "participant_exit", endedAtTimestampMs: 500, exercises: [], intervals: [] })!;
     expect(JSON.parse(completed.jsonl.split("\n")[0]).sessionResult).toMatchObject({ status: "aborted", endedReason: "participant_exit" });
   });
 });
