@@ -5,9 +5,11 @@ import type { PoseEngineStatus } from "../pose/usePoseLandmarker";
 import {
   TUTORIAL_MOVEMENTS,
   TutorialMovementDetector,
+  onboardingGestureEnabled,
   type ClientDemoOnboardingStage,
 } from "../clientDemo/onboardingFlow";
 import { FramingGuidanceAssessor, type FramingGuidance } from "../programme/framingGuidance";
+import { RightArmReadyGestureDetector, type ReadyGestureStatus } from "../programme/readyGesture";
 import { LiveCameraSurface } from "./LiveCameraSurface";
 import { ClientDemoLanding } from "./ClientDemoLanding";
 
@@ -52,8 +54,10 @@ export function ClientDemoOnboarding(props: ClientDemoOnboardingProps) {
   const { stage, cameraState, poseStatus, poseFrame, poseQuality, videoRef, canvasRef, onNext, onEnableCamera, onStartProgramme, onCameraSurfaceReady } = props;
   const framingRef = useRef(new FramingGuidanceAssessor());
   const tutorialRef = useRef(new TutorialMovementDetector());
+  const continueGestureRef = useRef(new RightArmReadyGestureDetector());
   const [guidance, setGuidance] = useState<FramingGuidance>("STEP INTO VIEW");
   const [movementDetected, setMovementDetected] = useState(false);
+  const [continueGestureStatus, setContinueGestureStatus] = useState<ReadyGestureStatus>("not-detected");
 
   useEffect(() => {
     if (stage !== "camera-setup") onCameraSurfaceReady();
@@ -67,13 +71,33 @@ export function ClientDemoOnboarding(props: ClientDemoOnboardingProps) {
 
   useEffect(() => {
     tutorialRef.current.reset(stage);
+    continueGestureRef.current.reset(true);
     setMovementDetected(false);
+    setContinueGestureStatus("not-detected");
   }, [stage]);
 
   useEffect(() => {
     if (!stage.startsWith("tutorial-") || movementDetected) return;
     setMovementDetected(tutorialRef.current.update(stage, poseFrame, poseQuality, poseFrame?.timestampMs ?? performance.now()));
   }, [movementDetected, poseFrame, poseQuality, stage]);
+
+  const positioningSuccessful = guidance === "FULL BODY VISIBLE";
+  const gestureEnabled = onboardingGestureEnabled(stage, positioningSuccessful, movementDetected);
+
+  useEffect(() => {
+    const result = continueGestureRef.current.update(
+      poseFrame,
+      poseQuality,
+      poseFrame?.timestampMs ?? performance.now(),
+      gestureEnabled,
+    );
+    setContinueGestureStatus(result.status);
+    if (result.triggered) onNext();
+  }, [gestureEnabled, onNext, poseFrame, poseQuality]);
+
+  const gestureInstruction = continueGestureStatus === "holding"
+    ? "Keep your right arm raised…"
+    : "Raise your right arm and hold it up to continue.";
 
   if (stage === "welcome") return <div className="client-demo-onboarding"><SetupProgress stage={stage} /><ClientDemoLanding exerciseCount={9} onStart={onNext} /></div>;
 
@@ -86,9 +110,9 @@ export function ClientDemoOnboarding(props: ClientDemoOnboardingProps) {
   }
 
   if (stage === "positioning") {
-    const success = guidance === "FULL BODY VISIBLE";
+    const success = positioningSuccessful;
     const message = poseStatus === "error" ? "Movement tracking is unavailable. You can continue anyway." : GUIDANCE_COPY[guidance];
-    return <div className="client-demo-onboarding"><SetupProgress stage={stage} /><main className="client-demo-camera-layout"><div><p className="eyebrow">Positioning check</p><h1>Position Yourself</h1><p>Step back until your body is clearly visible in the camera.</p></div><CameraSurface cameraState={cameraState} videoRef={videoRef} canvasRef={canvasRef} message={message} /><button className={success ? "participant-primary-action" : "participant-secondary-action"} onClick={onNext}>{success ? "CONTINUE" : "CONTINUE ANYWAY"}</button></main></div>;
+    return <div className="client-demo-onboarding"><SetupProgress stage={stage} /><main className="client-demo-camera-layout"><div><p className="eyebrow">Positioning check</p><h1>Position Yourself</h1><p>Step back until your body is clearly visible in the camera.</p>{success && <p className="client-demo-gesture-instruction">{gestureInstruction}</p>}</div><CameraSurface cameraState={cameraState} videoRef={videoRef} canvasRef={canvasRef} message={message} /><button className="participant-secondary-action" onClick={onNext}>{success ? "USE BUTTON INSTEAD" : "CONTINUE ANYWAY"}</button></main></div>;
   }
 
   if (stage.startsWith("tutorial-")) {
@@ -96,7 +120,7 @@ export function ClientDemoOnboarding(props: ClientDemoOnboardingProps) {
     const movement = TUTORIAL_MOVEMENTS[index];
     const instruction = stage === "tutorial-stand" ? "Stand comfortably facing the camera with your arms by your sides." : stage === "tutorial-arms" ? "Slowly raise both arms above your head, then lower them again." : "Take one comfortable step sideways, then return to the centre.";
     const feedback = movementDetected ? (stage === "tutorial-stand" ? "Great — you're in position." : "Great — movement detected.") : "Try the movement, or continue when you're ready.";
-    return <div className="client-demo-onboarding"><SetupProgress stage={stage} /><main className="client-demo-camera-layout"><div><p className="eyebrow">Movement tutorial · {index + 1} of 3</p><h1>{index + 1} of 3 — {movement.title}</h1><p>{instruction}</p></div><CameraSurface cameraState={cameraState} videoRef={videoRef} canvasRef={canvasRef} message={feedback} /><button className={movementDetected ? "participant-primary-action" : "participant-secondary-action"} onClick={onNext}>{movementDetected ? "CONTINUE" : "CONTINUE ANYWAY"}</button></main></div>;
+    return <div className="client-demo-onboarding"><SetupProgress stage={stage} /><main className="client-demo-camera-layout"><div><p className="eyebrow">Movement tutorial · {index + 1} of 3</p><h1>{index + 1} of 3 — {movement.title}</h1><p>{instruction}</p>{movementDetected && <p className="client-demo-gesture-instruction">{gestureInstruction}</p>}</div><CameraSurface cameraState={cameraState} videoRef={videoRef} canvasRef={canvasRef} message={feedback} /><button className="participant-secondary-action" onClick={onNext}>{movementDetected ? "USE BUTTON INSTEAD" : "CONTINUE ANYWAY"}</button></main></div>;
   }
 
   return <div className="client-demo-onboarding"><SetupProgress stage={stage} /><main className="client-demo-camera-layout"><div><p className="eyebrow">Setup complete</p><h1>You&apos;re Ready</h1><p>Your camera is set up and you&apos;ve tried movement tracking.</p><p>You&apos;ll now complete nine exercises. Follow each demonstration and perform the movement in front of the camera.</p></div><CameraSurface cameraState={cameraState} videoRef={videoRef} canvasRef={canvasRef} message="Ready when you are." /><button className="participant-primary-action" onClick={onStartProgramme}>START PROGRAMME</button></main></div>;

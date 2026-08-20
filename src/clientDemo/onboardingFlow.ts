@@ -40,6 +40,16 @@ export function stageAfterCameraStatus(
   return stage === "camera-setup" && cameraStatus === "active" ? "positioning" : stage;
 }
 
+export function onboardingGestureEnabled(
+  stage: ClientDemoOnboardingStage,
+  positioningSuccessful: boolean,
+  tutorialMovementDetected: boolean,
+): boolean {
+  if (stage === "positioning") return positioningSuccessful;
+  if (stage.startsWith("tutorial-")) return tutorialMovementDetected;
+  return false;
+}
+
 export const TUTORIAL_MOVEMENTS = [
   { stage: "tutorial-stand", title: "Stand in the Centre" },
   { stage: "tutorial-arms", title: "Raise Your Arms" },
@@ -112,7 +122,10 @@ export class TutorialMovementDetector {
   private detectStablePose(frame: PoseFrame | null, quality: PoseQuality, timestampMs: number): boolean {
     const usable = frame !== null && quality.personPresent && quality.level !== "insufficient" &&
       confident(frame, "leftShoulder") !== null && confident(frame, "rightShoulder") !== null &&
-      confident(frame, "leftHip") !== null && confident(frame, "rightHip") !== null;
+      confident(frame, "leftHip") !== null && confident(frame, "rightHip") !== null &&
+      confident(frame, "leftWrist") !== null && confident(frame, "rightWrist") !== null &&
+      confident(frame, "leftWrist")!.y > confident(frame, "leftShoulder")!.y &&
+      confident(frame, "rightWrist")!.y > confident(frame, "rightShoulder")!.y;
     if (usable) {
       if (this.stableSinceMs === null) this.stableSinceMs = timestampMs;
       this.lastUsableMs = timestampMs;

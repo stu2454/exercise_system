@@ -8,12 +8,12 @@
 **Current stage:** Stage 7 — Session Detail View (not started)
 **Last completed stage:** Build 7 Stage 6 — Session History List
 
-**Additional deployment capability:** Client Demo deployed on GitHub Pages; guided onboarding implemented locally
+**Additional deployment capability:** Client Demo deployed on GitHub Pages; guided onboarding with hands-free continuation implemented locally
 
 **Verification:**
 
 - 37 test files passing
-- 242 tests passing
+- 243 tests passing
 - Production build passing
 - Client Demo production build passing
 - `git diff --check` passing

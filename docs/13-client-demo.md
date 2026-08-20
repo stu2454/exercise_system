@@ -39,10 +39,16 @@ The tutorial contains exactly three movements:
 3. **Step to the side** — shoulder/hip body centre shifts horizontally and then
    returns towards its starting position.
 
-Each movement also has a manual continuation action. Tutorial observations are
-not exercises and do not create or enter a `ProgrammeSessionResult`. The actual
-session tracker is created only from the final Ready screen's **START
-PROGRAMME** action.
+After successful positioning or tutorial recognition, the participant can hold
+their right arm above their shoulder for 650 ms to continue without approaching
+the device. The same canonical ready-gesture detector used by the programme is
+reused here; it requires the arm to be lowered between screens so a held gesture
+cannot skip the next instruction. Each screen retains a secondary button for
+accessibility and a **CONTINUE ANYWAY** path when recognition is incomplete.
+
+Tutorial observations are not exercises and do not create or enter a
+`ProgrammeSessionResult`. The actual session tracker is created only from the
+final Ready screen's **START PROGRAMME** action.
 
 ## One engine, multiple application surfaces
 

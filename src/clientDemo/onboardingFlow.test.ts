@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PoseFrame, PoseQuality } from "../pose/types";
-import { canStartClientDemoProgramme, CLIENT_DEMO_ONBOARDING_ORDER, nextOnboardingStage, stageAfterCameraStatus, TutorialMovementDetector } from "./onboardingFlow";
+import { canStartClientDemoProgramme, CLIENT_DEMO_ONBOARDING_ORDER, nextOnboardingStage, onboardingGestureEnabled, stageAfterCameraStatus, TutorialMovementDetector } from "./onboardingFlow";
 
 const GOOD: PoseQuality = { level: "good", personPresent: true, fullBodyVisible: true, missingRequiredLandmarks: [], warnings: [] };
 const LOST: PoseQuality = { level: "insufficient", personPresent: false, fullBodyVisible: false, missingRequiredLandmarks: [], warnings: [] };
@@ -40,6 +40,14 @@ describe("Client Demo onboarding", () => {
     expect(stageAfterCameraStatus("camera-setup", "active")).toBe("positioning");
     expect(stageAfterCameraStatus("camera-setup", "error")).toBe("camera-setup");
     expect(stageAfterCameraStatus("welcome", "active")).toBe("welcome");
+  });
+
+  it("enables hands-free continuation only after the current check succeeds", () => {
+    expect(onboardingGestureEnabled("positioning", true, false)).toBe(true);
+    expect(onboardingGestureEnabled("positioning", false, false)).toBe(false);
+    expect(onboardingGestureEnabled("tutorial-arms", false, true)).toBe(true);
+    expect(onboardingGestureEnabled("tutorial-arms", false, false)).toBe(false);
+    expect(onboardingGestureEnabled("ready", true, true)).toBe(false);
   });
 
   it("recognises a stable centred pose while tolerating brief landmark loss", () => {

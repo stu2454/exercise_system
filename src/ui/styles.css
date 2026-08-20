@@ -118,6 +118,15 @@ body {
   border-radius: 0.65rem;
 }
 
+.client-demo-camera-layout .client-demo-gesture-instruction {
+  margin-top: 1.25rem;
+  padding: 0.9rem 1rem;
+  color: #102017;
+  background: #7ef2ad;
+  border-radius: 0.65rem;
+  font-weight: 900;
+}
+
 .client-demo-card .participant-primary-action,
 .client-demo-camera-layout > .participant-primary-action,
 .client-demo-camera-layout > .participant-secondary-action {
