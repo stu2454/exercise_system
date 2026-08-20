@@ -32,12 +32,12 @@ body {
 }
 
 .client-demo-landing h1 { max-width: none; margin: 0; }
-.client-demo-landing > p { max-width: 48rem; margin: 0; font-size: clamp(1.35rem, 2.4vw, 2rem); line-height: 1.35; }
-.client-demo-landing .client-demo-lead { font-size: clamp(1.8rem, 3.5vw, 3rem); font-weight: 800; }
-.client-demo-landing .eyebrow { color: #a8d8b7; }
+.client-demo-landing > p { max-width: 58rem; margin: 0; font-size: clamp(1.6rem, 2.8vw, 2.35rem); line-height: 1.3; }
+.client-demo-landing .client-demo-lead { font-size: clamp(2.1rem, 4vw, 3.4rem); font-weight: 800; }
+.client-demo-landing .eyebrow { color: #a8d8b7; font-size: clamp(1.2rem, 1.8vw, 1.6rem); }
 .client-demo-landing__count { color: #7ef2ad; font-size: clamp(1.8rem, 3vw, 2.6rem) !important; font-weight: 900; text-transform: uppercase; }
-.client-demo-privacy { color: #d5e2da; font-size: clamp(1.15rem, 1.8vw, 1.5rem) !important; }
-.client-demo-disclaimer { color: #ffe49a; font-size: clamp(1.15rem, 1.8vw, 1.5rem) !important; font-weight: 700; }
+.client-demo-privacy { color: #d5e2da; font-size: clamp(1.4rem, 2.2vw, 1.85rem) !important; }
+.client-demo-disclaimer { color: #ffe49a; font-size: clamp(1.4rem, 2.2vw, 1.85rem) !important; font-weight: 700; }
 .client-demo-landing .participant-primary-action { margin-top: 1rem; }
 
 .client-demo-onboarding {
@@ -54,11 +54,16 @@ body {
   background: transparent;
 }
 
+.client-demo-onboarding .eyebrow {
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  line-height: 1.25;
+}
+
 .client-demo-setup-progress {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 0.5rem;
-  width: min(100%, 56rem);
+  width: min(100%, 78rem);
   margin: 0 auto clamp(1.25rem, 3vw, 2.5rem);
   padding: 0;
   color: #82958a;
@@ -67,9 +72,9 @@ body {
 }
 
 .client-demo-setup-progress li {
-  padding: 0.6rem 0.35rem;
-  border-bottom: 3px solid #314b3d;
-  font-size: clamp(0.95rem, 1.6vw, 1.25rem);
+  padding: 0.8rem 0.45rem;
+  border-bottom: 4px solid #314b3d;
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
   font-weight: 800;
 }
 
@@ -81,7 +86,7 @@ body {
 .client-demo-card {
   display: grid;
   gap: 1.25rem;
-  width: min(100%, 52rem);
+  width: min(100%, 64rem);
   margin: clamp(1rem, 5vh, 4rem) auto 0;
   padding: clamp(1.5rem, 4vw, 3rem);
   background: #101b15;
@@ -99,12 +104,12 @@ body {
 .client-demo-card > p,
 .client-demo-camera-layout > div:first-child > p {
   margin: 0;
-  font-size: clamp(1.4rem, 2.6vw, 2rem);
-  line-height: 1.4;
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+  line-height: 1.35;
 }
 
 .client-demo-camera-layout .client-demo-lead {
-  font-size: clamp(1.8rem, 3.4vw, 2.8rem);
+  font-size: clamp(2.1rem, 3.8vw, 3.2rem);
   font-weight: 850;
   line-height: 1.25;
 }
@@ -114,7 +119,7 @@ body {
   gap: 1rem;
   margin: 0;
   padding-left: 1.4rem;
-  font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+  font-size: clamp(1.6rem, 2.8vw, 2.15rem);
   line-height: 1.35;
 }
 
@@ -123,7 +128,7 @@ body {
   color: #231805;
   background: #ffd76a;
   border-radius: 0.65rem;
-  font-size: clamp(1.35rem, 2.4vw, 1.8rem) !important;
+  font-size: clamp(1.6rem, 2.8vw, 2.15rem) !important;
   text-align: center;
 }
 
@@ -133,7 +138,7 @@ body {
   color: #102017;
   background: #7ef2ad;
   border-radius: 0.65rem;
-  font-size: clamp(1.75rem, 3vw, 2.5rem) !important;
+  font-size: clamp(2rem, 3.5vw, 3rem) !important;
   font-weight: 900;
   line-height: 1.2 !important;
   text-align: center;
@@ -147,9 +152,9 @@ body {
 
 .client-demo-camera-layout {
   display: grid;
-  grid-template-columns: minmax(15rem, 0.7fr) minmax(22rem, 1.3fr);
+  grid-template-columns: minmax(19rem, 0.85fr) minmax(24rem, 1.15fr);
   gap: clamp(1rem, 3vw, 2rem);
-  width: min(100%, 78rem);
+  width: min(100%, 92rem);
   margin: 0 auto;
   align-items: center;
 }
@@ -165,7 +170,7 @@ body {
   color: #102017;
   background: #a8d8b7;
   border-radius: 0.65rem;
-  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-size: clamp(1.9rem, 3.4vw, 2.8rem);
   font-weight: 900;
   text-align: center;
 }

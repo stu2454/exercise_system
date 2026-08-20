@@ -146,4 +146,7 @@ the device. Each screen uses one short primary instruction, large responsive
 headings, high-contrast camera feedback and a prominent right-arm continuation
 prompt. Space preparation is reduced to four scannable actions with bold lead
 words. Privacy and prototype qualifications remain visible but do not compete
-with the current movement instruction.
+with the current movement instruction. Supporting text, setup navigation,
+section labels, safety messages and fallback controls use deliberately large
+minimum sizes as well; wide screens allocate more horizontal space to the
+instruction column rather than leaving it unused.
