@@ -24,7 +24,7 @@ body {
   min-height: 100dvh;
   place-content: center;
   justify-items: center;
-  gap: 1rem;
+  gap: clamp(1.4rem, 2.8vh, 2.25rem);
   padding: clamp(1.5rem, 6vw, 5rem);
   color: #f7fbf8;
   background: radial-gradient(circle at 50% 15%, #244b37, #08120d 55%);
@@ -64,7 +64,7 @@ body {
   grid-template-columns: repeat(4, 1fr);
   gap: 0.5rem;
   width: min(100%, 78rem);
-  margin: 0 auto clamp(1.25rem, 3vw, 2.5rem);
+  margin: 0 auto clamp(2rem, 4vh, 3.5rem);
   padding: 0;
   color: #82958a;
   list-style: none;
@@ -85,7 +85,7 @@ body {
 
 .client-demo-card {
   display: grid;
-  gap: 1.25rem;
+  gap: clamp(1.5rem, 3vh, 2.5rem);
   width: min(100%, 64rem);
   margin: clamp(1rem, 5vh, 4rem) auto 0;
   padding: clamp(1.5rem, 4vw, 3rem);
@@ -133,7 +133,7 @@ body {
 }
 
 .client-demo-camera-layout .client-demo-gesture-instruction {
-  margin-top: 1.25rem;
+  margin-top: clamp(0.5rem, 1.5vh, 1rem);
   padding: 0.9rem 1rem;
   color: #102017;
   background: #7ef2ad;
@@ -153,10 +153,17 @@ body {
 .client-demo-camera-layout {
   display: grid;
   grid-template-columns: minmax(19rem, 0.85fr) minmax(24rem, 1.15fr);
-  gap: clamp(1rem, 3vw, 2rem);
+  column-gap: clamp(1.5rem, 3vw, 3rem);
+  row-gap: clamp(2rem, 4vh, 3.5rem);
   width: min(100%, 92rem);
   margin: 0 auto;
   align-items: center;
+}
+
+.client-demo-camera-layout > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 2.5vh, 2.25rem);
 }
 
 .client-demo-camera-layout > button { grid-column: 1 / -1; }
@@ -165,7 +172,7 @@ body {
 .client-demo-camera-card video { width: 100%; height: 100%; object-fit: contain; }
 .client-demo-camera-feedback {
   min-height: 3.5rem;
-  margin: 0.75rem 0 0;
+  margin: clamp(1rem, 2vh, 1.5rem) 0 0;
   padding: 0.85rem 1rem;
   color: #102017;
   background: #a8d8b7;
